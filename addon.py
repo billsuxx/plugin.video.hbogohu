@@ -127,7 +127,7 @@ def SILENTREGISTER():
 		xbmcgui.Dialog().ok('Error', jsonrsp['Data']['ErrorMessage'])
 
 	indiv = jsonrsp['Data']['Customer']['CurrentDevice']['Individualization']
-	custid = jsonrsp['Data']['Customer']['CurrentDevice']['Id'];
+	custid = jsonrsp['Data']['Customer']['Id'];
 	storeIndiv(indiv, custid)
 
 	sessionId= jsonrsp['Data']['SessionId']
