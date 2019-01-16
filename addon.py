@@ -331,6 +331,9 @@ def CATEGORIES():
 	for cat in range(0, len(jsonrsp['Items'])):
 		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'),jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0','/0/0/1/1024/0/0'),'',1,md+'DefaultFolder.png')
 
+CONTAINER_CONTENT_TYPE_MOVIE = 1
+CONTAINER_CONTENT_TYPE_SERIES = 2
+CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
 # lista
 def LIST(url):
 	global sessionId
@@ -355,24 +358,63 @@ def LIST(url):
 			addDir(jsonrsp['Container'][Container]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][Container]['ObjectUrl'],'',1,md+'DefaultFolder.png')
 	else:
 		for titles in range(0, len(jsonrsp['Container'][0]['Contents']['Items'])):
-			if jsonrsp['Container'][0]['Contents']['Items'][titles]['ContentType'] == 1: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
-				#Ако е филм    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-				plot = jsonrsp['Container'][0]['Contents']['Items'][titles]['Abstract'].encode('utf-8', 'ignore')
-				if 'AvailabilityTo' in jsonrsp['Container'][0]['Contents']['Items'][titles]:
-					if jsonrsp['Container'][0]['Contents']['Items'][titles]['AvailabilityTo'] is not None:
-						plot = plot + ' A film megtekinthető: ' + jsonrsp['Container'][0]['Contents']['Items'][titles]['AvailabilityTo'].encode('utf-8', 'ignore')
-				addLink(jsonrsp['Container'][0]['Contents']['Items'][titles]['ObjectUrl'],plot,jsonrsp['Container'][0]['Contents']['Items'][titles]['AgeRating'],jsonrsp['Container'][0]['Contents']['Items'][titles]['ImdbRate'],jsonrsp['Container'][0]['Contents']['Items'][titles]['BackgroundUrl'],[jsonrsp['Container'][0]['Contents']['Items'][titles]['Cast'].split(', ')][0],jsonrsp['Container'][0]['Contents']['Items'][titles]['Director'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Writer'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Duration'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Genre'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][titles]['OriginalName'],jsonrsp['Container'][0]['Contents']['Items'][titles]['ProductionYear'],5)
-				#xbmc.log("GO: FILMI: DUMP: " + jsonrsp['Container'][0]['Contents']['Items'][titles]['ObjectUrl'], xbmc.LOGNOTICE)
+			item = jsonrsp['Container'][0]['Contents']['Items'][titles]
+			content_type = item['ContentType']
+			if content_type == CONTAINER_CONTENT_TYPE_MOVIE: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
 
-			elif jsonrsp['Container'][0]['Contents']['Items'][titles]['ContentType'] == 3:
-				#Ако е Epizód на сериал    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-				plot = jsonrsp['Container'][0]['Contents']['Items'][titles]['Abstract'].encode('utf-8', 'ignore')
-				if jsonrsp['Container'][0]['Contents']['Items'][titles]['AvailabilityTo'] is not None:
-					plot = plot + ' Az epizód megtekinthető: ' + jsonrsp['Container'][0]['Contents']['Items'][titles]['AvailabilityTo'].encode('utf-8', 'ignore')
-				addLink(jsonrsp['Container'][0]['Contents']['Items'][titles]['ObjectUrl'],plot,jsonrsp['Container'][0]['Contents']['Items'][titles]['AgeRating'],jsonrsp['Container'][0]['Contents']['Items'][titles]['ImdbRate'],jsonrsp['Container'][0]['Contents']['Items'][titles]['BackgroundUrl'],[jsonrsp['Container'][0]['Contents']['Items'][titles]['Cast'].split(', ')][0],jsonrsp['Container'][0]['Contents']['Items'][titles]['Director'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Writer'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Duration'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Genre'],jsonrsp['Container'][0]['Contents']['Items'][titles]['SeriesName'].encode('utf-8', 'ignore')+' - '+str(jsonrsp['Container'][0]['Contents']['Items'][titles]['SeasonIndex'])+'. ÉVAD '+str(jsonrsp['Container'][0]['Contents']['Items'][titles]['Index']) + '. RÉSZ',jsonrsp['Container'][0]['Contents']['Items'][titles]['OriginalName'],jsonrsp['Container'][0]['Contents']['Items'][titles]['ProductionYear'],5)
+				# if it's a movie    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+				plot = item['Abstract'].encode('utf-8', 'ignore')
+
+				if 'AvailabilityTo' in item:
+					if item['AvailabilityTo'] is not None:
+
+						plot = plot + ' A film megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
+
+				object_url = item['ObjectUrl']
+				age_rating = item['AgeRating']
+				imdb = item['ImdbRate']
+				background_url = item['BackgroundUrl']
+				cast = [item['Cast'].split(', ')][0]
+				director = item['Director']
+				writer = item['Writer']
+				duration = item['Duration']
+				genre = item['Genre']
+				name = item['Name'].encode('utf-8', 'ignore')
+				original_name = item['OriginalName']
+				production_year = item['ProductionYear']
+
+				addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
+				#xbmc.log("GO: FILMI: DUMP: " + item['ObjectUrl'], xbmc.LOGNOTICE)
+
+			elif content_type == CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
+				# If it's a series episode    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+				plot = item['Abstract'].encode('utf-8', 'ignore')
+				if item['AvailabilityTo'] is not None:
+					plot = plot + ' Az epizód megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
+
+
+				object_url = item['ObjectUrl']
+				age_rating = item['AgeRating']
+				imdb = item['ImdbRate']
+				background_url = item['BackgroundUrl']
+				cast = [item['Cast'].split(', ')][0]
+				director = item['Director']
+				writer = item['Writer']
+				duration = item['Duration']
+				genre = item['Genre']
+				name = item['SeriesName'].encode('utf-8', 'ignore')+' - '+str(item['SeasonIndex'])+'. ÉVAD '+str(item['Index']) + '. RÉSZ'
+				original_name = item['OriginalName']
+				production_year = item['ProductionYear']
+
+				addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
 			else:
-				#Ако е сериал
-				addDir(jsonrsp['Container'][0]['Contents']['Items'][titles]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][titles]['ObjectUrl'],jsonrsp['Container'][0]['Contents']['Items'][titles]['Abstract'].encode('utf-8', 'ignore'),2,jsonrsp['Container'][0]['Contents']['Items'][titles]['BackgroundUrl'])
+				# If it's a series
+				name = item['Name'].encode('utf-8', 'ignore')
+				object_url = item['ObjectUrl']
+				abstract = item['Abstract'].encode('utf-8', 'ignore')
+				mode = 2
+				background_url = item['BackgroundUrl']
+				addDir(name, object_url, abstract, mode, background_url)
 
 
 # evadok
