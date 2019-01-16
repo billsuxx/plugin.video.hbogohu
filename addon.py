@@ -330,9 +330,9 @@ def CATEGORIES():
 	for cat in range(0, len(jsonrsp['Items'])):
 		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'),jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0','/0/0/1/1024/0/0'),'',1,md+'DefaultFolder.png')
 
-CONTAINER_CONTENT_TYPE_MOVIE = 1
-CONTAINER_CONTENT_TYPE_SERIES = 2
-CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
+LIST_CONTAINER_CONTENT_TYPE_MOVIE = 1
+LIST_CONTAINER_CONTENT_TYPE_SERIES = 2
+LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
 
 def list_add_movie_link(item):
 	# if it's a movie    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
@@ -422,10 +422,10 @@ def LIST(url):
 			item = items[titles]
 			content_type = item['ContentType']
 
-			if content_type == CONTAINER_CONTENT_TYPE_MOVIE: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
+			if content_type == LIST_CONTAINER_CONTENT_TYPE_MOVIE: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
 				list_add_movie_link(item)
 
-			elif content_type == CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
+			elif content_type == LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
 				list_add_series_episode(item)
 
 			else:
@@ -612,6 +612,52 @@ def PLAY(url):
 	#		xbmc.sleep(42)
 	#		xbmc.Player().setSubtitles(srtsubs_path)
 
+SEARCH_CONTENT_TYPE_MOVIE = 1
+SEARCH_CONTENT_TYPE_MOVIE_ALT = 7
+SEARCH_CONTENT_TYPE_SERIES = 2
+SEARCH_CONTENT_TYPE_SERIES_EPISODE = 3
+
+def search_add_movie(item):
+	object_url = item['ObjectUrl']
+	plot = item['Abstract'].encode('utf-8', 'ignore')
+	age_rating = item['AgeRating']
+	imdb = item['ImdbRate']
+	background_url = item['BackgroundUrl']
+	cast = [item['Cast'].split(', ')][0]
+	director = item['Director']
+	writer = item['Writer']
+	duration = item['Duration']
+	genre = item['Genre']
+	name = item['Name'].encode('utf-8', 'ignore')
+	original_name = item['OriginalName']
+	production_year = item['ProductionYear']
+
+	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
+
+def search_add_series_episode(item):
+	object_url = item['ObjectUrl']
+	plot = item['Abstract'].encode('utf-8', 'ignore')
+	age_rating = item['AgeRating']
+	imdb = item['ImdbRate']
+	background_url = item['BackgroundUrl']
+	cast = [item['Cast'].split(', ')][0]
+	director = item['Director']
+	writer = item['Writer']
+	duration = item['Duration']
+	genre = item['Genre']
+	name = item['SeriesName'].encode('utf-8', 'ignore')+' '+item['Name'].encode('utf-8', 'ignore')
+	original_name = item['OriginalName']
+	production_year = item['ProductionYear']
+
+	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year,5)
+
+def search_add_series(item):
+	name = item['Name'].encode('utf-8', 'ignore')
+	object_url = item['ObjectUrl']
+	plot = item['Abstract'].encode('utf-8', 'ignore')
+	background_url = item['BackgroundUrl']
+	addDir(name, object_url, plot, 2, background_url)
+
 def SEARCH():
 	keyb = xbmc.Keyboard(search_string, 'Filmek, sorozatok keresése...')
 	keyb.doModal()
@@ -636,18 +682,20 @@ def SEARCH():
 				pass
 
 			br=0
-			for index in range(0, len(jsonrsp['Container'][0]['Contents']['Items'])):
-				if (jsonrsp['Container'][0]['Contents']['Items'][index]['ContentType'] == 1 or jsonrsp['Container'][0]['Contents']['Items'][index]['ContentType'] == 7): #1,7=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
+			items = jsonrsp['Container'][0]['Contents']['Items']
+			for index in range(0, len(items)):
+				item = items[index]
+				if (item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE or item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE_ALT): #1,7=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
 					#Ако е филм    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-					addLink(jsonrsp['Container'][0]['Contents']['Items'][index]['ObjectUrl'],jsonrsp['Container'][0]['Contents']['Items'][index]['Abstract'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][index]['AgeRating'],jsonrsp['Container'][0]['Contents']['Items'][index]['ImdbRate'],jsonrsp['Container'][0]['Contents']['Items'][index]['BackgroundUrl'],[jsonrsp['Container'][0]['Contents']['Items'][index]['Cast'].split(', ')][0],jsonrsp['Container'][0]['Contents']['Items'][index]['Director'],jsonrsp['Container'][0]['Contents']['Items'][index]['Writer'],jsonrsp['Container'][0]['Contents']['Items'][index]['Duration'],jsonrsp['Container'][0]['Contents']['Items'][index]['Genre'],jsonrsp['Container'][0]['Contents']['Items'][index]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][index]['OriginalName'],jsonrsp['Container'][0]['Contents']['Items'][index]['ProductionYear'],5)
-				elif jsonrsp['Container'][0]['Contents']['Items'][index]['ContentType'] == 3:
+					search_add_movie(item)
+				elif item['ContentType'] == SEARCH_CONTENT_TYPE_SERIES_EPISODE:
 					#Ако е Epizód на сериал    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-					addLink(jsonrsp['Container'][0]['Contents']['Items'][index]['ObjectUrl'],jsonrsp['Container'][0]['Contents']['Items'][index]['Abstract'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][index]['AgeRating'],jsonrsp['Container'][0]['Contents']['Items'][index]['ImdbRate'],jsonrsp['Container'][0]['Contents']['Items'][index]['BackgroundUrl'],[jsonrsp['Container'][0]['Contents']['Items'][index]['Cast'].split(', ')][0],jsonrsp['Container'][0]['Contents']['Items'][index]['Director'],jsonrsp['Container'][0]['Contents']['Items'][index]['Writer'],jsonrsp['Container'][0]['Contents']['Items'][index]['Duration'],jsonrsp['Container'][0]['Contents']['Items'][index]['Genre'],jsonrsp['Container'][0]['Contents']['Items'][index]['SeriesName'].encode('utf-8', 'ignore')+' '+jsonrsp['Container'][0]['Contents']['Items'][index]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][index]['OriginalName'],jsonrsp['Container'][0]['Contents']['Items'][index]['ProductionYear'],5)
+					search_add_series_episode(item)
 				else:
+					search_add_series(item)
 					#Ако е сериал
-					addDir(jsonrsp['Container'][0]['Contents']['Items'][index]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][0]['Contents']['Items'][index]['ObjectUrl'],jsonrsp['Container'][0]['Contents']['Items'][index]['Abstract'].encode('utf-8', 'ignore'),2,jsonrsp['Container'][0]['Contents']['Items'][index]['BackgroundUrl'])
-				br=br+1
-			if br==0:
+				br = br+1
+			if br == 0:
 				addDir('Nincs találat','','','',md+'DefaultFolderBack.png')
 
 def addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode):
