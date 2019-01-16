@@ -32,7 +32,6 @@ language = __settings__.getSetting('language')
 params=None
 url=None
 name=None
-iconimage=None
 
 if language == '0':
 	lang = 'Hungarian'
@@ -457,7 +456,7 @@ def SEASON(url):
 def episode_add_episode(item):
 	# addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
 	plot = item['Abstract'].encode('utf-8', 'ignore')
-	if 'AvailabilityTo' in item and :
+	if 'AvailabilityTo' in item:
 		if item['AvailabilityTo'] is not None:
 			plot = plot + ' Az epizód megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
 
@@ -709,8 +708,9 @@ def main():
 	global params
 	global url
 	global name
-	global iconimage
+	global thumbnail
 	global mode
+	global cid
 
 	params=get_params()
 
