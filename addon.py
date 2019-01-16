@@ -454,6 +454,28 @@ def SEASON(url):
 		item = items[season];
 		season_add_season(item)
 
+def episode_add_episode(item):
+	# addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+	plot = item['Abstract'].encode('utf-8', 'ignore')
+	if 'AvailabilityTo' in item and :
+		if item['AvailabilityTo'] is not None:
+			plot = plot + ' Az epizód megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
+
+	object_url = item['ObjectUrl']
+	age_rating = item['AgeRating']
+	imdb = item['ImdbRate']
+	background_url = item['BackgroundUrl']
+	cast = [item['Cast'].split(', ')][0]
+	director = item['Director']
+	writer = item['Writer']
+	duration = item['Duration']
+	genre = item['Genre']
+	name = item['SeriesName'].encode('utf-8', 'ignore')+' - '+str(item['SeasonIndex'])+'. ÉVAD '+item['Name'].encode('utf-8', 'ignore')
+	original_name = item['OriginalName']
+	production_year = item['ProductionYear']
+
+	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
+
 # epizodok
 def EPISODE(url):
 	req = urllib2.Request(url, None, loggedin_headers)
@@ -467,13 +489,10 @@ def EPISODE(url):
 	except:
 		pass
 
-	for episode in range(0, len(jsonrsp['ChildContents']['Items'])):
-		# addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-		plot = jsonrsp['ChildContents']['Items'][episode]['Abstract'].encode('utf-8', 'ignore')
-		if 'AvailabilityTo' in jsonrsp['ChildContents']['Items'][episode]:
-			if jsonrsp['ChildContents']['Items'][episode]['AvailabilityTo'] is not None:
-				plot = plot + ' Az epizód megtekinthető: ' + jsonrsp['ChildContents']['Items'][episode]['AvailabilityTo'].encode('utf-8', 'ignore')
-		addLink(jsonrsp['ChildContents']['Items'][episode]['ObjectUrl'],plot,jsonrsp['ChildContents']['Items'][episode]['AgeRating'],jsonrsp['ChildContents']['Items'][episode]['ImdbRate'],jsonrsp['ChildContents']['Items'][episode]['BackgroundUrl'],[jsonrsp['ChildContents']['Items'][episode]['Cast'].split(', ')][0],jsonrsp['ChildContents']['Items'][episode]['Director'],jsonrsp['ChildContents']['Items'][episode]['Writer'],jsonrsp['ChildContents']['Items'][episode]['Duration'],jsonrsp['ChildContents']['Items'][episode]['Genre'],jsonrsp['ChildContents']['Items'][episode]['SeriesName'].encode('utf-8', 'ignore')+' - '+str(jsonrsp['ChildContents']['Items'][episode]['SeasonIndex'])+'. ÉVAD '+jsonrsp['ChildContents']['Items'][episode]['Name'].encode('utf-8', 'ignore'),jsonrsp['ChildContents']['Items'][episode]['OriginalName'],jsonrsp['ChildContents']['Items'][episode]['ProductionYear'],5)
+	items = jsonrsp['ChildContents']['Items']
+	for episode in range(0, len(items)):
+		item = items[episode]
+		episode_add_episode(item)
 
 # lejatszas
 def PLAY(url):
