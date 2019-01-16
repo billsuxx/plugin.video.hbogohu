@@ -17,6 +17,7 @@ import time
 import random
 import inputstreamhelper
 
+mode=None
 
 __addon_id__= 'plugin.video.hbogohu'
 __Addon = xbmcaddon.Addon(__addon_id__)
@@ -27,6 +28,12 @@ MUA = 'Dalvik/2.1.0 (Linux; U; Android 8.0.0; Nexus 5X Build/OPP3.170518.006)'
 
 se = __settings__.getSetting('se')
 language = __settings__.getSetting('language')
+
+params=None
+url=None
+name=None
+iconimage=None
+
 if language == '0':
 	lang = 'Hungarian'
 	Code = 'HUN'
@@ -39,7 +46,7 @@ elif language == '2':
 	lang = 'English'
 	Code = 'ENG'
 	srtsubs_path = xbmc.translatePath('special://temp/hbogo.English.Forced.srt')
-	
+
 
 md = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/media/")
 search_string = urllib.unquote_plus(__settings__.getSetting('lastsearch'))
@@ -589,74 +596,90 @@ def addDir(name,url,plot,mode,iconimage):
 def get_params():
 	param=[]
 	paramstring=sys.argv[2]
+
 	if len(paramstring)>=2:
 		params=sys.argv[2]
 		cleanedparams=params.replace('?','')
+
 		if (params[len(params)-1]=='/'):
 			params=params[0:len(params)-2]
+
 		pairsofparams=cleanedparams.split('&')
 		param={}
+
 		for i in range(len(pairsofparams)):
 			splitparams={}
 			splitparams=pairsofparams[i].split('=')
+
 			if (len(splitparams))==2:
 				param[splitparams[0]]=splitparams[1]
+
 	return param
 
 
+def main():
+	global params
+	global url
+	global name
+	global iconimage
+	global mode
 
-params=get_params()
-url=None
-name=None
-iconimage=None
-mode=None
+	params=get_params()
 
-try:
+	try:
 		url=urllib.unquote_plus(params["url"])
-except:
+	except:
 		pass
-try:
+
+	try:
 		name=urllib.unquote_plus(params["name"])
-except:
+	except:
 		pass
-try:
+
+	try:
 		thumbnail=str(params["thumbnail"])
-except:
+	except:
 		pass
-try:
+
+	try:
 		mode=int(params["mode"])
-except:
+	except:
 		pass
-try:
+
+	try:
 		cid=str(params["cid"])
-except:
+	except:
 		pass
 
 
 
-if mode==None or url==None or len(url)<1:
+	if mode==None or url==None or len(url)<1:
 		CATEGORIES()
 
-elif mode==1:
+	elif mode==1:
 		LIST(url)
 
-elif mode==2:
+	elif mode==2:
 		SEASON(url)
 
-elif mode==3:
+	elif mode==3:
 		EPISODE(url)
 
-elif mode==4:
+	elif mode==4:
 		SEARCH()
 
-elif mode==5:
+	elif mode==5:
 		PLAY(url)
 
-elif mode==6:
+	elif mode==6:
 		SILENTREGISTER()
 
-elif mode==7:
+	elif mode==7:
 		LOGIN()
 
 
-xbmcplugin.endOfDirectory(int(sys.argv[1]))
+	xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+if __name__ == "__main__":
+	main()
+# vim: sw=2:ts=2:noexpandtab
