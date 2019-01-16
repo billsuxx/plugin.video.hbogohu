@@ -208,8 +208,72 @@ def LOGIN():
 	else:
 		url = 'https://hugwapi.hbogo.eu/v2.1/Authentication/json/HUN/COMP'
 
-	data = '{"Action":"L","AppLanguage":null,"ActivationCode":null,"AllowedContents":[],"AudioLanguage":null,"AutoPlayNext":false,"BirthYear":0,"CurrentDevice":{"AppLanguage":"","AutoPlayNext":false,"Brand":"Chromium","CreatedDate":"","DeletedDate":"","Id":"00000000-0000-0000-0000-000000000000","Individualization":"'+individualization+'",               "IsDeleted":false,"LastUsed":"","Modell":"62","Name":"","OSName":"Ubuntu","OSVersion":"undefined","Platform":"COMP","SWVersion":"2.4.2.4025.240","SubtitleSize":""},"CustomerCode":"","DebugMode":false,"DefaultSubtitleLanguage":null,"EmailAddress":"'+username+'","FirstName":"",           "Gender":0,"Id":"00000000-0000-0000-0000-000000000000","IsAnonymus":true,"IsPromo":false,"Language":"HUN","LastName":"","Nick":"","NotificationChanges":0,"OperatorId":"'+op_id+'",                           "OperatorName":"","OperatorToken":"","ParentalControl":{"Active":false,"Password":"","Rating":0,"ReferenceId":"00000000-0000-0000-0000-000000000000"},"Password":"'+password+'","PromoCode":"","ReferenceId":"00000000-0000-0000-0000-000000000000","SecondaryEmailAddress":"","SecondarySpecificData":null,"ServiceCode":"","SubscribeForNewsletter":false,"SubscState":null,"SubtitleSize":"","TVPinCode":"","ZipCode":""}'
+	data_obj = {
+		"Action": "L",
+		"AppLanguage": None,
+		"ActivationCode": None,
+		"AllowedContents": [],
+		"AudioLanguage": None,
+		"AutoPlayNext": False,
+		"BirthYear": 1,
+		"CurrentDevice": {
+			"AppLanguage":"",
+			"AutoPlayNext": False,
+			"Brand": "Chromium",
+			"CreatedDate": "",
+			"DeletedDate": "",
+			"Id": "00000000-0000-0000-0000-000000000000",
+			"Individualization": individualization,
+			"IsDeleted": False,
+			"LastUsed": "",
+			"Modell": "62",
+			"Name": "",
+			"OSName": "Ubuntu",
+			"OSVersion": "undefined",
+			"Platform": "COMP",
+			"SWVersion": "2.4.2.4025.240",
+			"SubtitleSize": ""
+		},
+		"CustomerCode": "",
+		"DebugMode": False,
+		"DefaultSubtitleLanguage": None,
+		"EmailAddress": username,
+		"FirstName": "",
+		"Gender": 0,
+		"Id": "00000000-0000-0000-0000-000000000000",
+		"IsAnonymus": True,
+		"IsPromo": False,
+		"Language": "HUN",
+		"LastName": "",
+		"Nick": "",
+		"NotificationChanges": 0,
+		"OperatorId": op_id,
+		"OperatorName": "",
+		"OperatorToken": "",
+		"ParentalControl": {
+			"Active": False,
+			"Password": "",
+			"Rating": 0,
+			"ReferenceId": "00000000-0000-0000-0000-000000000000"
+		},
+		"Password": password,
+		"PromoCode": "",
+		"ReferenceId": "00000000-0000-0000-0000-000000000000",
+		"SecondaryEmailAddress": "",
+		"SecondarySpecificData": None,
+		"ServiceCode": "",
+		"SubscribeForNewsletter": False,
+		"SubscState": None,
+		"SubtitleSize": "",
+		"TVPinCode": "",
+		"ZipCode": ""
+	}
+
+	data = json.dumps(data_obj)
 	r = requests.post(url, headers=headers, data=data)
+
+
+
 	jsonrspl = json.loads(r.text)
 
 	try:
