@@ -334,6 +334,65 @@ def CATEGORIES():
 CONTAINER_CONTENT_TYPE_MOVIE = 1
 CONTAINER_CONTENT_TYPE_SERIES = 2
 CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
+
+def add_movie_link(item):
+	# if it's a movie    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+	plot = item['Abstract'].encode('utf-8', 'ignore')
+
+	if 'AvailabilityTo' in item:
+		if item['AvailabilityTo'] is not None:
+
+			plot = plot + ' A film megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
+
+	object_url = item['ObjectUrl']
+	age_rating = item['AgeRating']
+	imdb = item['ImdbRate']
+	background_url = item['BackgroundUrl']
+	cast = [item['Cast'].split(', ')][0]
+	director = item['Director']
+	writer = item['Writer']
+	duration = item['Duration']
+	genre = item['Genre']
+	name = item['Name'].encode('utf-8', 'ignore')
+	original_name = item['OriginalName']
+	production_year = item['ProductionYear']
+
+	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
+	#xbmc.log("GO: FILMI: DUMP: " + item['ObjectUrl'], xbmc.LOGNOTICE)
+
+def add_series_episode(item):
+	# If it's a series episode    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+	plot = item['Abstract'].encode('utf-8', 'ignore')
+	if item['AvailabilityTo'] is not None:
+		plot = plot + ' Az epizód megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
+
+	object_url = item['ObjectUrl']
+	age_rating = item['AgeRating']
+	imdb = item['ImdbRate']
+	background_url = item['BackgroundUrl']
+	cast = [item['Cast'].split(', ')][0]
+	director = item['Director']
+	writer = item['Writer']
+	duration = item['Duration']
+	genre = item['Genre']
+	name = item['SeriesName'].encode('utf-8', 'ignore')+' - '+str(item['SeasonIndex'])+'. ÉVAD '+str(item['Index']) + '. RÉSZ'
+	original_name = item['OriginalName']
+	production_year = item['ProductionYear']
+
+	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
+
+def add_series(item):
+	# If it's a series
+	name = item['Name'].encode('utf-8', 'ignore')
+	object_url = item['ObjectUrl']
+	abstract = item['Abstract'].encode('utf-8', 'ignore')
+	mode = 2
+	background_url = item['BackgroundUrl']
+	addDir(name, object_url, abstract, mode, background_url)
+
+def add_subcategory(item):
+	addDir(item['Name'].encode('utf-8', 'ignore'), item['ObjectUrl'], '', 1, md + 'DefaultFolder.png')
+
 # lista
 def LIST(url):
 	global sessionId
@@ -355,66 +414,23 @@ def LIST(url):
 	# If there is a subcategory / genres
 	if len(jsonrsp['Container']) > 1:
 		for Container in range(0, len(jsonrsp['Container'])):
-			addDir(jsonrsp['Container'][Container]['Name'].encode('utf-8', 'ignore'),jsonrsp['Container'][Container]['ObjectUrl'],'',1,md+'DefaultFolder.png')
+			item = jsonrsp['Container'][Container]
+			add_subcategory(item)
 	else:
-		for titles in range(0, len(jsonrsp['Container'][0]['Contents']['Items'])):
-			item = jsonrsp['Container'][0]['Contents']['Items'][titles]
+		items = jsonrsp['Container'][0]['Contents']['Items']
+
+		for titles in range(0, len(items)):
+			item = items[titles]
 			content_type = item['ContentType']
+
 			if content_type == CONTAINER_CONTENT_TYPE_MOVIE: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
-
-				# if it's a movie    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-				plot = item['Abstract'].encode('utf-8', 'ignore')
-
-				if 'AvailabilityTo' in item:
-					if item['AvailabilityTo'] is not None:
-
-						plot = plot + ' A film megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
-
-				object_url = item['ObjectUrl']
-				age_rating = item['AgeRating']
-				imdb = item['ImdbRate']
-				background_url = item['BackgroundUrl']
-				cast = [item['Cast'].split(', ')][0]
-				director = item['Director']
-				writer = item['Writer']
-				duration = item['Duration']
-				genre = item['Genre']
-				name = item['Name'].encode('utf-8', 'ignore')
-				original_name = item['OriginalName']
-				production_year = item['ProductionYear']
-
-				addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
-				#xbmc.log("GO: FILMI: DUMP: " + item['ObjectUrl'], xbmc.LOGNOTICE)
+				add_movie_link(item)
 
 			elif content_type == CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
-				# If it's a series episode    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
-				plot = item['Abstract'].encode('utf-8', 'ignore')
-				if item['AvailabilityTo'] is not None:
-					plot = plot + ' Az epizód megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
+				add_series_episode(item)
 
-
-				object_url = item['ObjectUrl']
-				age_rating = item['AgeRating']
-				imdb = item['ImdbRate']
-				background_url = item['BackgroundUrl']
-				cast = [item['Cast'].split(', ')][0]
-				director = item['Director']
-				writer = item['Writer']
-				duration = item['Duration']
-				genre = item['Genre']
-				name = item['SeriesName'].encode('utf-8', 'ignore')+' - '+str(item['SeasonIndex'])+'. ÉVAD '+str(item['Index']) + '. RÉSZ'
-				original_name = item['OriginalName']
-				production_year = item['ProductionYear']
-
-				addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
 			else:
-				# If it's a series
-				name = item['Name'].encode('utf-8', 'ignore')
-				object_url = item['ObjectUrl']
-				abstract = item['Abstract'].encode('utf-8', 'ignore')
-				mode = 2
-				background_url = item['BackgroundUrl']
-				addDir(name, object_url, abstract, mode, background_url)
+				add_series(item)
 
 
 # evadok
