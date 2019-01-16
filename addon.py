@@ -672,6 +672,13 @@ def get_params():
 
 	return param
 
+MODE_LIST = 1
+MODE_SEASON = 2
+MODE_EPISODE = 3
+MODE_SEARCH = 4
+MODE_PLAY = 5
+MODE_SILENT_REGISTER = 6
+MODE_LOGIN = 7
 
 def main():
 	global params
@@ -709,28 +716,28 @@ def main():
 
 
 
-	if mode==None or url==None or len(url)<1:
+	if mode == None or url == None or len(url) < 1:
 		CATEGORIES()
 
-	elif mode==1:
+	elif mode == MODE_LIST:
 		LIST(url)
 
-	elif mode==2:
+	elif mode == MODE_SEASON:
 		SEASON(url)
 
-	elif mode==3:
+	elif mode == MODE_EPISODE:
 		EPISODE(url)
 
-	elif mode==4:
+	elif mode == MODE_SEARCH:
 		SEARCH()
 
-	elif mode==5:
+	elif mode == MODE_PLAY:
 		PLAY(url)
 
-	elif mode==6:
+	elif mode == MODE_SILENT_REGISTER:
 		SILENTREGISTER()
 
-	elif mode==7:
+	elif mode == MODE_LOGIN:
 		LOGIN()
 
 
