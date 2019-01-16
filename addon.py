@@ -335,7 +335,7 @@ CONTAINER_CONTENT_TYPE_MOVIE = 1
 CONTAINER_CONTENT_TYPE_SERIES = 2
 CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
 
-def add_movie_link(item):
+def list_add_movie_link(item):
 	# if it's a movie    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
 	plot = item['Abstract'].encode('utf-8', 'ignore')
 
@@ -360,7 +360,7 @@ def add_movie_link(item):
 	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
 	#xbmc.log("GO: FILMI: DUMP: " + item['ObjectUrl'], xbmc.LOGNOTICE)
 
-def add_series_episode(item):
+def list_add_series_episode(item):
 	# If it's a series episode    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
 	plot = item['Abstract'].encode('utf-8', 'ignore')
 	if item['AvailabilityTo'] is not None:
@@ -381,7 +381,7 @@ def add_series_episode(item):
 
 	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
 
-def add_series(item):
+def list_add_series(item):
 	# If it's a series
 	name = item['Name'].encode('utf-8', 'ignore')
 	object_url = item['ObjectUrl']
@@ -390,7 +390,7 @@ def add_series(item):
 	background_url = item['BackgroundUrl']
 	addDir(name, object_url, abstract, mode, background_url)
 
-def add_subcategory(item):
+def list_add_subcategory(item):
 	addDir(item['Name'].encode('utf-8', 'ignore'), item['ObjectUrl'], '', 1, md + 'DefaultFolder.png')
 
 # lista
@@ -415,7 +415,7 @@ def LIST(url):
 	if len(jsonrsp['Container']) > 1:
 		for Container in range(0, len(jsonrsp['Container'])):
 			item = jsonrsp['Container'][Container]
-			add_subcategory(item)
+			list_add_subcategory(item)
 	else:
 		items = jsonrsp['Container'][0]['Contents']['Items']
 
@@ -424,13 +424,13 @@ def LIST(url):
 			content_type = item['ContentType']
 
 			if content_type == CONTAINER_CONTENT_TYPE_MOVIE: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
-				add_movie_link(item)
+				list_add_movie_link(item)
 
 			elif content_type == CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
-				add_series_episode(item)
+				list_add_series_episode(item)
 
 			else:
-				add_series(item)
+				list_add_series(item)
 
 
 # evadok
