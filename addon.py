@@ -433,6 +433,9 @@ def LIST(url):
 				list_add_series(item)
 
 
+def season_add_season(item):
+	addDir(item['Name'].encode('utf-8', 'ignore'), item['ObjectUrl'], item['Abstract'].encode('utf-8', 'ignore'), 3, item['BackgroundUrl'])
+
 # evadok
 def SEASON(url):
 	req = urllib2.Request(url, None, loggedin_headers)
@@ -445,8 +448,11 @@ def SEASON(url):
 			xbmcgui.Dialog().ok('Hiba', jsonrsp['ErrorMessage'])
 	except:
 		pass
-	for season in range(0, len(jsonrsp['Parent']['ChildContents']['Items'])):
-		addDir(jsonrsp['Parent']['ChildContents']['Items'][season]['Name'].encode('utf-8', 'ignore'),jsonrsp['Parent']['ChildContents']['Items'][season]['ObjectUrl'],jsonrsp['Parent']['ChildContents']['Items'][season]['Abstract'].encode('utf-8', 'ignore'),3,jsonrsp['Parent']['ChildContents']['Items'][season]['BackgroundUrl'])
+
+	items = jsonrsp['Parent']['ChildContents']['Items']
+	for season in range(0, len(items)):
+		item = items[season];
+		season_add_season(item)
 
 # epizodok
 def EPISODE(url):
