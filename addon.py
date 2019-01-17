@@ -51,8 +51,11 @@ md = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/media/")
 search_string = urllib.unquote_plus(__settings__.getSetting('lastsearch'))
 
 operator = __settings__.getSetting('operator')
+
+NON_AUTHENTICATED_OP_ID = '00000000-0000-0000-0000-000000000000'
+
 op_ids = [
-	'00000000-0000-0000-0000-000000000000', # Anonymous NoAuthenticated
+	NON_AUTHENTICATED_OP_ID, # Anonymous NoAuthenticated
 	'15276cb7-7f53-432a-8ed5-a32038614bbf', # HBO GO webes
 	'48f48c5b-e9e4-4fca-833b-2fa26fb1ad22', # UPC Direct
 	'b7728684-13d5-46d9-a9a4-97d676cdaeec', # DIGI
@@ -83,7 +86,7 @@ individualization = ""
 goToken = ""
 customerId = ""
 GOcustomerId = ""
-sessionId = '00000000-0000-0000-0000-000000000000'
+sessionId = NON_AUTHENTICATED_OP_ID
 FavoritesGroupId = ""
 
 loggedin_headers = {
@@ -203,7 +206,7 @@ def LOGIN():
 		'GO-SessionId': '',
 		'Referer': 'https://gateway.hbogo.eu/signin/form',
 		'Connection': 'keep-alive',
-		'GO-CustomerId': '00000000-0000-0000-0000-000000000000',
+		'GO-CustomerId': NON_AUTHENTICATED_OP_ID,
 		'Content-Type': 'application/json',
 	}
 
@@ -228,7 +231,7 @@ def LOGIN():
 			"Brand": "Chromium",
 			"CreatedDate": "",
 			"DeletedDate": "",
-			"Id": "00000000-0000-0000-0000-000000000000",
+			"Id": NON_AUTHENTICATED_OP_ID,
 			"Individualization": individualization,
 			"IsDeleted": False,
 			"LastUsed": "",
@@ -246,7 +249,7 @@ def LOGIN():
 		"EmailAddress": username,
 		"FirstName": "",
 		"Gender": 0,
-		"Id": "00000000-0000-0000-0000-000000000000",
+		"Id": NON_AUTHENTICATED_OP_ID,
 		"IsAnonymus": True,
 		"IsPromo": False,
 		"Language": "HUN",
@@ -260,11 +263,11 @@ def LOGIN():
 			"Active": False,
 			"Password": "",
 			"Rating": 0,
-			"ReferenceId": "00000000-0000-0000-0000-000000000000"
+			"ReferenceId": NON_AUTHENTICATED_OP_ID
 		},
 		"Password": password,
 		"PromoCode": "",
-		"ReferenceId": "00000000-0000-0000-0000-000000000000",
+		"ReferenceId": NON_AUTHENTICATED_OP_ID,
 		"SecondaryEmailAddress": "",
 		"SecondarySpecificData": None,
 		"ServiceCode": "",
@@ -292,7 +295,7 @@ def LOGIN():
 	individualization = jsonrspl['Customer']['CurrentDevice']['Individualization']
 
 	sessionId = jsonrspl['SessionId']
-	if sessionId == '00000000-0000-0000-0000-000000000000':
+	if sessionId == NON_AUTHENTICATED_OP_ID:
 		xbmcgui.Dialog().ok('Login Hiba!','Ellenőrizd a belépési adatokat!')
 		xbmcaddon.Addon(id='plugin.video.hbogohu').openSettings("Accunt")
 		xbmc.executebuiltin("Action(Back)")
@@ -397,7 +400,7 @@ def LIST(url):
 	global sessionId
 	global loggedin_headers
 
-	if sessionId == '00000000-0000-0000-0000-000000000000':
+	if sessionId == NON_AUTHENTICATED_OP_ID:
 		LOGIN()
 
 	req = urllib2.Request(url, None, loggedin_headers)
@@ -502,7 +505,7 @@ def PLAY(url):
 	global sessionId
 	global loggedin_headers
 
-	if sessionId == '00000000-0000-0000-0000-000000000000':
+	if sessionId == NON_AUTHENTICATED_OP_ID:
 		LOGIN()
 
 	if se=='true':
