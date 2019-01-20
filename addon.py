@@ -26,6 +26,12 @@ __settings__ = xbmcaddon.Addon(id='plugin.video.hbogohu')
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'
 MUA = 'Dalvik/2.1.0 (Linux; U; Android 8.0.0; Nexus 5X Build/OPP3.170518.006)'
 
+LIST_CONTAINER_CONTENT_TYPE_MOVIE = 1
+LIST_CONTAINER_CONTENT_TYPE_SERIES = 2
+LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
+
+NON_AUTHENTICATED_OP_ID = '00000000-0000-0000-0000-000000000000'
+
 se = __settings__.getSetting('se')
 language = __settings__.getSetting('language')
 
@@ -51,8 +57,6 @@ md = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/media/")
 search_string = urllib.unquote_plus(__settings__.getSetting('lastsearch'))
 
 operator = __settings__.getSetting('operator')
-
-NON_AUTHENTICATED_OP_ID = '00000000-0000-0000-0000-000000000000'
 
 op_ids = [
 	NON_AUTHENTICATED_OP_ID, # Anonymous NoAuthenticated
@@ -281,8 +285,6 @@ def LOGIN():
 	data = json.dumps(data_obj)
 	r = requests.post(url, headers=headers, data=data)
 
-
-
 	jsonrspl = json.loads(r.text)
 
 	try:
@@ -317,7 +319,7 @@ def CATEGORIES():
 		GETFAVORITEGROUP()
 
 	if (FavoritesGroupId != ""):
-		addDir('Lejátszási listád', 'https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/'+FavoritesGroupId+'/-/-/-/1000/-/-/false', '', 1,md+'FavoritesFolder.png')
+		addDir('Lejátszási listád', 'https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/' + FavoritesGroupId + '/-/-/-/1000/-/-/false', '', 1,md + 'FavoritesFolder.png')
 
 	req = urllib2.Request('https://huapi.hbogo.eu/v5/Groups/json/HUN/COMP', None, loggedin_headers)
 	opener = urllib2.build_opener()
@@ -331,11 +333,7 @@ def CATEGORIES():
 		pass
 
 	for cat in range(0, len(jsonrsp['Items'])):
-		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'), jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0', '/0/0/1/1024/0/0'), '', 1,md+'DefaultFolder.png')
-
-LIST_CONTAINER_CONTENT_TYPE_MOVIE = 1
-LIST_CONTAINER_CONTENT_TYPE_SERIES = 2
-LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
+		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'), jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0', '/0/0/1/1024/0/0'), '', 1,md + 'DefaultFolder.png')
 
 def list_add_movie_link(item):
 	# if it's a movie    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
@@ -377,7 +375,7 @@ def list_add_series_episode(item):
 	writer = item['Writer']
 	duration = item['Duration']
 	genre = item['Genre']
-	name = item['SeriesName'].encode('utf-8', 'ignore')+' - '+str(item['SeasonIndex'])+'. ÉVAD '+str(item['Index']) + '. RÉSZ'
+	name = item['SeriesName'].encode('utf-8', 'ignore') + ' - ' + str(item['SeasonIndex']) + '. ÉVAD ' + str(item['Index']) + '. RÉSZ'
 	original_name = item['OriginalName']
 	production_year = item['ProductionYear']
 
@@ -472,7 +470,7 @@ def episode_add_episode(item):
 	writer = item['Writer']
 	duration = item['Duration']
 	genre = item['Genre']
-	name = item['SeriesName'].encode('utf-8', 'ignore')+' - '+str(item['SeasonIndex'])+'. ÉVAD '+item['Name'].encode('utf-8', 'ignore')
+	name = item['SeriesName'].encode('utf-8', 'ignore') + ' - ' + str(item['SeasonIndex']) + '. ÉVAD ' + item['Name'].encode('utf-8', 'ignore')
 	original_name = item['OriginalName']
 	production_year = item['ProductionYear']
 
@@ -510,11 +508,11 @@ def PLAY(url):
 
 	if se=='true':
 		try:
-			#print 'CID '+cid
+			#print 'CID ' + cid
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/COMP/
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/APPLE/
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/SONY/
-			req = urllib2.Request('http://huapi.hbogo.eu/v5/Content/json/HUN/MOBI/'+cid, None, loggedin_headers)
+			req = urllib2.Request('http://huapi.hbogo.eu/v5/Content/json/HUN/MOBI/' + cid, None, loggedin_headers)
 			req.add_header('User-Agent', MUA)
 			opener = urllib2.build_opener()
 			f = opener.open(req)
@@ -536,7 +534,7 @@ def PLAY(url):
 				buffer = ''
 				for sub in subs:
 					row = row + 1
-					buffer += str(row) +'\n'
+					buffer += str(row) + '\n'
 					buffer += "%s,%03d" % (sub[0], int(sub[1])) + ' --> ' + "%s,%03d" % (sub[2], int(sub[3])) + '\n'
 					buffer += urllib.unquote_plus(sub[4]).replace('<br/>', '\n').replace('<br />', '\n').replace("\r\n", "").replace("&lt;", "<").replace("&gt;", ">").replace("\n    ","").strip()
 					buffer += '\n\n'
@@ -553,7 +551,7 @@ def PLAY(url):
 			sub = 'false'
 
 
-	purchase_payload = '<Purchase xmlns="go:v5:interop"><AllowHighResolution>true</AllowHighResolution><ContentId>'+cid+'</ContentId><CustomerId>'+GOcustomerId+'</CustomerId><Individualization>'+individualization+'</Individualization><OperatorId>'+op_id+'</OperatorId><ClientInfo></ClientInfo><IsFree>false</IsFree><UseInteractivity>false</UseInteractivity></Purchase>'
+	purchase_payload = '<Purchase xmlns="go:v5:interop"><AllowHighResolution>true</AllowHighResolution><ContentId>'+ cid + '</ContentId><CustomerId>' + GOcustomerId + '</CustomerId><Individualization>' + individualization + '</Individualization><OperatorId>' + op_id + '</OperatorId><ClientInfo></ClientInfo><IsFree>false</IsFree><UseInteractivity>false</UseInteractivity></Purchase>'
 
 	purchase_headers = {
 		'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -648,7 +646,7 @@ def search_add_series_episode(item):
 	writer = item['Writer']
 	duration = item['Duration']
 	genre = item['Genre']
-	name = item['SeriesName'].encode('utf-8', 'ignore')+' '+item['Name'].encode('utf-8', 'ignore')
+	name = item['SeriesName'].encode('utf-8', 'ignore') + ' ' + item['Name'].encode('utf-8', 'ignore')
 	original_name = item['OriginalName']
 	production_year = item['ProductionYear']
 
@@ -668,11 +666,11 @@ def SEARCH():
 	if (keyb.isConfirmed()):
 		searchText = urllib.quote_plus(keyb.getText())
 		if searchText == "":
-			addDir('Nincs találat', '', '', '', md+'DefaultFolderBack.png')
+			addDir('Nincs találat', '', '', '', md + 'DefaultFolderBack.png')
 		else:
 			__settings__.setSetting('lastsearch', searchText)
 
-			req = urllib2.Request('https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/'+searchText.decode('utf-8', 'ignore').encode('utf-8', 'ignore')+'/0', None, loggedin_headers)
+			req = urllib2.Request('https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/' + searchText.decode('utf-8', 'ignore').encode('utf-8', 'ignore') + '/0', None, loggedin_headers)
 			opener = urllib2.build_opener()
 			f = opener.open(req)
 			jsonrsp = json.loads(f.read())
@@ -697,17 +695,17 @@ def SEARCH():
 				else:
 					search_add_series(item)
 					#Ако е сериал
-				br = br+1
+				br = br + 1
 			if br == 0:
-				addDir('Nincs találat', '', '', '', md+'DefaultFolderBack.png')
+				addDir('Nincs találat', '', '', '', md + 'DefaultFolderBack.png')
 
 def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode):
 	cid = ou.rsplit('/', 2)[1]
-	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&cid="+cid+"&thumbnail="+bu
+	u=sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name) + "&cid=" + cid + "&thumbnail=" + bu
 	ok=True
 	liz=xbmcgui.ListItem(name, iconImage=bu, thumbnailImage=bu)
 	liz.setArt({ 'thumb': bu, 'poster': bu, 'banner' : bu, 'fanart': bu })
-	liz.setInfo( type="Video", infoLabels={ "plot": plot, "mpaa": str(ar)+'+', "rating": imdb, "cast": cast, "director": director, "writer": writer, "duration": duration, "genre": genre, "title": name, "originaltitle": on, "year": py } )
+	liz.setInfo( type="Video", infoLabels={ "plot": plot, "mpaa": str(ar) + '+', "rating": imdb, "cast": cast, "director": director, "writer": writer, "duration": duration, "genre": genre, "title": name, "originaltitle": on, "year": py } )
 	liz.addStreamInfo('video', { 'width': 1280, 'height': 720 })
 	liz.addStreamInfo('video', { 'aspect': 1.78, 'codec': 'h264' })
 	liz.addStreamInfo('audio', { 'codec': 'aac', 'channels': 2 })
@@ -717,7 +715,7 @@ def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, nam
 
 
 def addDir(name, url, plot, mode, iconimage):
-	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+	u=sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name)
 	ok=True
 	liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
 	liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot } )
