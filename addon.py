@@ -702,7 +702,13 @@ def SEARCH():
 def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode):
 	cid = ou.rsplit('/', 2)[1]
 
-	u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name) + "&cid=" + cid + "&thumbnail=" + bu
+	u = sys.argv[0] + "?" + urllib.urlencode({
+		'url': url,
+		'mode': str(mode),
+		'name:': name,
+		'cid': cid,
+		'thumbnail': bu
+	})
 
 	liz = xbmcgui.ListItem(name, iconImage = bu, thumbnailImage = bu)
 	liz.setArt({ 'thumb': bu, 'poster': bu, 'banner' : bu, 'fanart': bu })
@@ -728,7 +734,12 @@ def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, nam
 
 
 def addDir(name, url, plot, mode, iconimage):
-	u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name)
+	u = sys.argv[0] + "?" + urllib.urlencode({
+		'url': url,
+		'mode': str(mode),
+		'name': name
+	})
+
 	liz = xbmcgui.ListItem(name, iconImage = "DefaultFolder.png", thumbnailImage = iconimage)
 	liz.setInfo( type = "Video", infoLabels = { "Title": name, "Plot": plot } )
 
