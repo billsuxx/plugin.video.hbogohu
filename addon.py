@@ -319,7 +319,7 @@ def CATEGORIES():
 		GETFAVORITEGROUP()
 
 	if (FavoritesGroupId != ""):
-		addDir('Lejátszási listád', 'https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/' + FavoritesGroupId + '/-/-/-/1000/-/-/false', '', 1,md + 'FavoritesFolder.png')
+		addDir('Lejátszási listád', 'https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/' + FavoritesGroupId + '/-/-/-/1000/-/-/false', '', 1, md + 'FavoritesFolder.png')
 
 	req = urllib2.Request('https://huapi.hbogo.eu/v5/Groups/json/HUN/COMP', None, loggedin_headers)
 	opener = urllib2.build_opener()
@@ -333,7 +333,7 @@ def CATEGORIES():
 		pass
 
 	for cat in range(0, len(jsonrsp['Items'])):
-		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'), jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0', '/0/0/1/1024/0/0'), '', 1,md + 'DefaultFolder.png')
+		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'), jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0', '/0/0/1/1024/0/0'), '', 1, md + 'DefaultFolder.png')
 
 def list_add_movie_link(item):
 	# if it's a movie    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
@@ -592,7 +592,12 @@ def PLAY(url):
 	if (se == 'true' and sub == 'true'):
 		li.setSubtitles([srtsubs_path])
 	license_server = 'https://lic.drmtoday.com/license-proxy-widevine/cenc/'
-	license_headers = 'dt-custom-data=' + dt_custom_data + '&x-dt-auth-token=' + x_dt_auth_token + '&Origin=https://www.hbogo.hu&Content-Type='
+	license_headers = urllib.urlencode({
+		'dt-custom-data': dt_custom_data,
+		'x-dt-auth-token': x_dt_auth_token,
+		'Origin': 'https://www.hbogo.hu',
+		'Content-Type': ''
+		})
 	license_key = license_server + '|' + license_headers + '|R{SSM}|JBlicense'
 
 	protocol = 'ism'
