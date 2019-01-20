@@ -191,7 +191,7 @@ def LOGIN():
 		GETFAVORITEGROUP()
 
 	if (username=="" or password==""):
-		xbmcgui.Dialog().ok('Hiba','Kérlek add meg a beállításoknál a belépési adatokat!')
+		xbmcgui.Dialog().ok('Hiba', 'Kérlek add meg a beállításoknál a belépési adatokat!')
 		xbmcaddon.Addon(id='plugin.video.hbogohu').openSettings("Accunt")
 		xbmc.executebuiltin("Container.Refresh")
 		LOGIN()
@@ -296,7 +296,7 @@ def LOGIN():
 
 	sessionId = jsonrspl['SessionId']
 	if sessionId == NON_AUTHENTICATED_OP_ID:
-		xbmcgui.Dialog().ok('Login Hiba!','Ellenőrizd a belépési adatokat!')
+		xbmcgui.Dialog().ok('Login Hiba!', 'Ellenőrizd a belépési adatokat!')
 		xbmcaddon.Addon(id='plugin.video.hbogohu').openSettings("Accunt")
 		xbmc.executebuiltin("Action(Back)")
 	else:
@@ -311,13 +311,13 @@ def LOGIN():
 def CATEGORIES():
 	global FavoritesGroupId
 
-	addDir('Keresés...','search','',4,'')
+	addDir('Keresés...', 'search', '', 4,'')
 
 	if (FavoritesGroupId == ""):
 		GETFAVORITEGROUP()
 
 	if (FavoritesGroupId != ""):
-		addDir('Lejátszási listád','https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/'+FavoritesGroupId+'/-/-/-/1000/-/-/false','',1,md+'FavoritesFolder.png')
+		addDir('Lejátszási listád', 'https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/'+FavoritesGroupId+'/-/-/-/1000/-/-/false', '', 1,md+'FavoritesFolder.png')
 
 	req = urllib2.Request('https://huapi.hbogo.eu/v5/Groups/json/HUN/COMP', None, loggedin_headers)
 	opener = urllib2.build_opener()
@@ -331,14 +331,14 @@ def CATEGORIES():
 		pass
 
 	for cat in range(0, len(jsonrsp['Items'])):
-		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'),jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0','/0/0/1/1024/0/0'),'',1,md+'DefaultFolder.png')
+		addDir(jsonrsp['Items'][cat]['Name'].encode('utf-8', 'ignore'), jsonrsp['Items'][cat]['ObjectUrl'].replace('/0/{sort}/{pageIndex}/{pageSize}/0/0', '/0/0/1/1024/0/0'), '', 1,md+'DefaultFolder.png')
 
 LIST_CONTAINER_CONTENT_TYPE_MOVIE = 1
 LIST_CONTAINER_CONTENT_TYPE_SERIES = 2
 LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
 
 def list_add_movie_link(item):
-	# if it's a movie    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+	# if it's a movie    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
 	plot = item['Abstract'].encode('utf-8', 'ignore')
 
 	if 'AvailabilityTo' in item:
@@ -363,7 +363,7 @@ def list_add_movie_link(item):
 	#xbmc.log("GO: FILMI: DUMP: " + item['ObjectUrl'], xbmc.LOGNOTICE)
 
 def list_add_series_episode(item):
-	# If it's a series episode    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+	# If it's a series episode    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
 	plot = item['Abstract'].encode('utf-8', 'ignore')
 	if item['AvailabilityTo'] is not None:
 		plot = plot + ' Az epizód megtekinthető: ' + item['AvailabilityTo'].encode('utf-8', 'ignore')
@@ -457,7 +457,7 @@ def SEASON(url):
 		season_add_season(item)
 
 def episode_add_episode(item):
-	# addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+	# addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
 	plot = item['Abstract'].encode('utf-8', 'ignore')
 	if 'AvailabilityTo' in item:
 		if item['AvailabilityTo'] is not None:
@@ -538,7 +538,7 @@ def PLAY(url):
 					row = row + 1
 					buffer += str(row) +'\n'
 					buffer += "%s,%03d" % (sub[0], int(sub[1])) + ' --> ' + "%s,%03d" % (sub[2], int(sub[3])) + '\n'
-					buffer += urllib.unquote_plus(sub[4]).replace('<br/>','\n').replace('<br />','\n').replace("\r\n", "").replace("&lt;", "<").replace("&gt;", ">").replace("\n    ","").strip()
+					buffer += urllib.unquote_plus(sub[4]).replace('<br/>', '\n').replace('<br />', '\n').replace("\r\n", "").replace("&lt;", "<").replace("&gt;", ">").replace("\n    ","").strip()
 					buffer += '\n\n'
 					sub = 'true'
 					with open(srtsubs_path, "w") as subfile:
@@ -652,7 +652,7 @@ def search_add_series_episode(item):
 	original_name = item['OriginalName']
 	production_year = item['ProductionYear']
 
-	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year,5)
+	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
 
 def search_add_series(item):
 	name = item['Name'].encode('utf-8', 'ignore')
@@ -668,7 +668,7 @@ def SEARCH():
 	if (keyb.isConfirmed()):
 		searchText = urllib.quote_plus(keyb.getText())
 		if searchText == "":
-			addDir('Nincs találat','','','',md+'DefaultFolderBack.png')
+			addDir('Nincs találat', '', '', '', md+'DefaultFolderBack.png')
 		else:
 			__settings__.setSetting('lastsearch', searchText)
 
@@ -689,39 +689,39 @@ def SEARCH():
 			for index in range(0, len(items)):
 				item = items[index]
 				if (item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE or item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE_ALT): #1,7=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
-					#Ако е филм    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+					#Ако е филм    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
 					search_add_movie(item)
 				elif item['ContentType'] == SEARCH_CONTENT_TYPE_SERIES_EPISODE:
-					#Ако е Epizód на сериал    # addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode)
+					#Ако е Epizód на сериал    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
 					search_add_series_episode(item)
 				else:
 					search_add_series(item)
 					#Ако е сериал
 				br = br+1
 			if br == 0:
-				addDir('Nincs találat','','','',md+'DefaultFolderBack.png')
+				addDir('Nincs találat', '', '', '', md+'DefaultFolderBack.png')
 
-def addLink(ou,plot,ar,imdb,bu,cast,director,writer,duration,genre,name,on,py,mode):
-	cid = ou.rsplit('/',2)[1]
+def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode):
+	cid = ou.rsplit('/', 2)[1]
 	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&cid="+cid+"&thumbnail="+bu
 	ok=True
 	liz=xbmcgui.ListItem(name, iconImage=bu, thumbnailImage=bu)
-	liz.setArt({ 'thumb': bu,'poster': bu, 'banner' : bu, 'fanart': bu })
+	liz.setArt({ 'thumb': bu, 'poster': bu, 'banner' : bu, 'fanart': bu })
 	liz.setInfo( type="Video", infoLabels={ "plot": plot, "mpaa": str(ar)+'+', "rating": imdb, "cast": cast, "director": director, "writer": writer, "duration": duration, "genre": genre, "title": name, "originaltitle": on, "year": py } )
 	liz.addStreamInfo('video', { 'width': 1280, 'height': 720 })
 	liz.addStreamInfo('video', { 'aspect': 1.78, 'codec': 'h264' })
 	liz.addStreamInfo('audio', { 'codec': 'aac', 'channels': 2 })
 	liz.setProperty("IsPlayable" , "true")
-	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
+	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]) ,url=u, listitem=liz, isFolder=False)
 	return ok
 
 
-def addDir(name,url,plot,mode,iconimage):
+def addDir(name, url, plot, mode, iconimage):
 	u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
 	ok=True
 	liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
 	liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot } )
-	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
+	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True)
 	return ok
 
 def get_params():
@@ -730,7 +730,7 @@ def get_params():
 
 	if len(paramstring)>=2:
 		params=sys.argv[2]
-		cleanedparams=params.replace('?','')
+		cleanedparams=params.replace('?', '')
 
 		if (params[len(params)-1]=='/'):
 			params=params[0:len(params)-2]
