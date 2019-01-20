@@ -17,11 +17,11 @@ import time
 import random
 import inputstreamhelper
 
-mode=None
+mode = None
 
 __addon_id__= 'plugin.video.hbogohu'
 __Addon = xbmcaddon.Addon(__addon_id__)
-__settings__ = xbmcaddon.Addon(id='plugin.video.hbogohu')
+__settings__ = xbmcaddon.Addon(id = 'plugin.video.hbogohu')
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'
 MUA = 'Dalvik/2.1.0 (Linux; U; Android 8.0.0; Nexus 5X Build/OPP3.170518.006)'
@@ -35,9 +35,9 @@ NON_AUTHENTICATED_OP_ID = '00000000-0000-0000-0000-000000000000'
 se = __settings__.getSetting('se')
 language = __settings__.getSetting('language')
 
-params=None
-url=None
-name=None
+params = None
+url = None
+name = None
 
 if language == '0':
 	lang = 'Hungarian'
@@ -194,9 +194,9 @@ def LOGIN():
 	if (FavoritesGroupId == ""):
 		GETFAVORITEGROUP()
 
-	if (username=="" or password==""):
+	if (username == "" or password == ""):
 		xbmcgui.Dialog().ok('Hiba', 'Kérlek add meg a beállításoknál a belépési adatokat!')
-		xbmcaddon.Addon(id='plugin.video.hbogohu').openSettings("Accunt")
+		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings("Accunt")
 		xbmc.executebuiltin("Container.Refresh")
 		LOGIN()
 
@@ -283,7 +283,7 @@ def LOGIN():
 	}
 
 	data = json.dumps(data_obj)
-	r = requests.post(url, headers=headers, data=data)
+	r = requests.post(url, headers = headers, data = data)
 
 	jsonrspl = json.loads(r.text)
 
@@ -299,7 +299,7 @@ def LOGIN():
 	sessionId = jsonrspl['SessionId']
 	if sessionId == NON_AUTHENTICATED_OP_ID:
 		xbmcgui.Dialog().ok('Login Hiba!', 'Ellenőrizd a belépési adatokat!')
-		xbmcaddon.Addon(id='plugin.video.hbogohu').openSettings("Accunt")
+		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings("Accunt")
 		xbmc.executebuiltin("Action(Back)")
 	else:
 		goToken = jsonrspl['Token']
@@ -423,7 +423,7 @@ def LIST(url):
 			item = items[titles]
 			content_type = item['ContentType']
 
-			if content_type == LIST_CONTAINER_CONTENT_TYPE_MOVIE: #1=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
+			if content_type == LIST_CONTAINER_CONTENT_TYPE_MOVIE: #1 = MOVIE/EXTRAS, 2 = SERIES(serial), 3 = SERIES(episode)
 				list_add_movie_link(item)
 
 			elif content_type == LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
@@ -506,7 +506,7 @@ def PLAY(url):
 	if sessionId == NON_AUTHENTICATED_OP_ID:
 		LOGIN()
 
-	if se=='true':
+	if se == 'true':
 		try:
 			#print 'CID ' + cid
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/COMP/
@@ -520,13 +520,13 @@ def PLAY(url):
 			#print jsonrsps
 
 			try:
-				if jsonrsps['Subtitles'][0]['Code']==Code:
+				if jsonrsps['Subtitles'][0]['Code'] == Code:
 					slink = jsonrsps['Subtitles'][0]['Url']
-				elif jsonrsps['Subtitles'][1]['Code']==Code:
+				elif jsonrsps['Subtitles'][1]['Code'] == Code:
 					slink = jsonrsps['Subtitles'][1]['Url']
 				req = urllib2.Request(slink, None, loggedin_headers)
 				response = urllib2.urlopen(req)
-				data=response.read()
+				data = response.read()
 				response.close()
 
 				subs = re.compile('<p[^>]+begin="([^"]+)\D(\d+)"[^>]+end="([^"]+)\D(\d+)"[^>]*>([\w\W]+?)</p>').findall(data)
@@ -588,27 +588,27 @@ def PLAY(url):
 	dt_custom_data = base64.b64encode("{\"userId\":\"" + GOcustomerId + "\",\"sessionId\":\"" + PlayerSessionId + "\",\"merchant\":\"hboeurope\"}")
 
 
-	li = xbmcgui.ListItem(iconImage=thumbnail, thumbnailImage=thumbnail, path=MediaUrl)
-	if (se=='true' and sub=='true'):
+	li = xbmcgui.ListItem(iconImage = thumbnail, thumbnailImage = thumbnail, path = MediaUrl)
+	if (se == 'true' and sub == 'true'):
 		li.setSubtitles([srtsubs_path])
 	license_server = 'https://lic.drmtoday.com/license-proxy-widevine/cenc/'
-	license_headers = 'dt-custom-data=' + dt_custom_data + '&x-dt-auth-token=' + x_dt_auth_token + '&Origin=https://www.hbogo.hu&Content-Type='
+	license_headers = 'dt-custom-data = ' + dt_custom_data + '&x-dt-auth-token = ' + x_dt_auth_token + '&Origin = https://www.hbogo.hu&Content-Type = '
 	license_key = license_server + '|' + license_headers + '|R{SSM}|JBlicense'
 
 	protocol = 'ism'
 	drm = 'com.widevine.alpha'
-	is_helper = inputstreamhelper.Helper(protocol, drm=drm)
+	is_helper = inputstreamhelper.Helper(protocol, drm = drm)
 	is_helper.check_inputstream()
 	li.setProperty('inputstreamaddon', 'inputstream.adaptive')
 	li.setProperty('inputstream.adaptive.manifest_type', protocol)
 	li.setProperty('inputstream.adaptive.license_type', drm)
-	li.setProperty('inputstream.adaptive.license_data', 'ZmtqM2xqYVNkZmFsa3Izag==')
+	li.setProperty('inputstream.adaptive.license_data', 'ZmtqM2xqYVNkZmFsa3Izag == ')
 	li.setProperty('inputstream.adaptive.license_key', license_key)
 
 	xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
 
 	#Задаване на външни субтитри, ако е избран този режим
-	#if (se=='true' and sub=='true'):
+	#if (se == 'true' and sub == 'true'):
 	#	while not xbmc.Player().isPlaying():
 	#		xbmc.sleep(42)
 	#		xbmc.Player().setSubtitles(srtsubs_path)
@@ -682,11 +682,11 @@ def SEARCH():
 			except:
 				pass
 
-			br=0
+			br = 0
 			items = jsonrsp['Container'][0]['Contents']['Items']
 			for index in range(0, len(items)):
 				item = items[index]
-				if (item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE or item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE_ALT): #1,7=MOVIE/EXTRAS, 2=SERIES(serial), 3=SERIES(episode)
+				if (item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE or item['ContentType'] == SEARCH_CONTENT_TYPE_MOVIE_ALT): #1,7 = MOVIE/EXTRAS, 2 = SERIES(serial), 3 = SERIES(episode)
 					#Ако е филм    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
 					search_add_movie(item)
 				elif item['ContentType'] == SEARCH_CONTENT_TYPE_SERIES_EPISODE:
@@ -701,47 +701,61 @@ def SEARCH():
 
 def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode):
 	cid = ou.rsplit('/', 2)[1]
-	u=sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name) + "&cid=" + cid + "&thumbnail=" + bu
-	ok=True
-	liz=xbmcgui.ListItem(name, iconImage=bu, thumbnailImage=bu)
+
+	u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name) + "&cid=" + cid + "&thumbnail=" + bu
+
+	liz = xbmcgui.ListItem(name, iconImage = bu, thumbnailImage = bu)
 	liz.setArt({ 'thumb': bu, 'poster': bu, 'banner' : bu, 'fanart': bu })
-	liz.setInfo( type="Video", infoLabels={ "plot": plot, "mpaa": str(ar) + '+', "rating": imdb, "cast": cast, "director": director, "writer": writer, "duration": duration, "genre": genre, "title": name, "originaltitle": on, "year": py } )
+	liz.setInfo( type = "Video", infoLabels = {
+		"plot": plot,
+		"mpaa": str(ar) + '+',
+		"rating": imdb,
+		"cast": cast,
+		"director": director,
+		"writer": writer,
+		"duration": duration,
+		"genre": genre,
+		"title": name,
+		"originaltitle": on,
+		"year": py
+	})
 	liz.addStreamInfo('video', { 'width': 1280, 'height': 720 })
 	liz.addStreamInfo('video', { 'aspect': 1.78, 'codec': 'h264' })
 	liz.addStreamInfo('audio', { 'codec': 'aac', 'channels': 2 })
 	liz.setProperty("IsPlayable" , "true")
-	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]) ,url=u, listitem=liz, isFolder=False)
+	ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = u, listitem = liz, isFolder = False)
 	return ok
 
 
 def addDir(name, url, plot, mode, iconimage):
-	u=sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name)
-	ok=True
-	liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-	liz.setInfo( type="Video", infoLabels={ "Title": name, "Plot": plot } )
-	ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True)
+	u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name)
+	liz = xbmcgui.ListItem(name, iconImage = "DefaultFolder.png", thumbnailImage = iconimage)
+	liz.setInfo( type = "Video", infoLabels = { "Title": name, "Plot": plot } )
+
+	ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = u, listitem = liz, isFolder = True)
+
 	return ok
 
 def get_params():
-	param=[]
-	paramstring=sys.argv[2]
+	param = []
+	paramstring = sys.argv[2]
 
-	if len(paramstring)>=2:
-		params=sys.argv[2]
-		cleanedparams=params.replace('?', '')
+	if len(paramstring) >= 2:
+		params = sys.argv[2]
+		cleanedparams = params.replace('?', '')
 
-		if (params[len(params)-1]=='/'):
-			params=params[0:len(params)-2]
+		if (params[len(params)-1] == '/'):
+			params = params[0:len(params)-2]
 
-		pairsofparams=cleanedparams.split('&')
-		param={}
+		pairsofparams = cleanedparams.split('&')
+		param = {}
 
 		for i in range(len(pairsofparams)):
-			splitparams={}
-			splitparams=pairsofparams[i].split('=')
+			splitparams = {}
+			splitparams = pairsofparams[i].split('=')
 
-			if (len(splitparams))==2:
-				param[splitparams[0]]=splitparams[1]
+			if (len(splitparams)) == 2:
+				param[splitparams[0]] = splitparams[1]
 
 	return param
 
@@ -761,30 +775,30 @@ def main():
 	global mode
 	global cid
 
-	params=get_params()
+	params = get_params()
 
 	try:
-		url=urllib.unquote_plus(params["url"])
+		url = urllib.unquote_plus(params["url"])
 	except:
 		pass
 
 	try:
-		name=urllib.unquote_plus(params["name"])
+		name = urllib.unquote_plus(params["name"])
 	except:
 		pass
 
 	try:
-		thumbnail=str(params["thumbnail"])
+		thumbnail = str(params["thumbnail"])
 	except:
 		pass
 
 	try:
-		mode=int(params["mode"])
+		mode = int(params["mode"])
 	except:
 		pass
 
 	try:
-		cid=str(params["cid"])
+		cid = str(params["cid"])
 	except:
 		pass
 
