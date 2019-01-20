@@ -592,7 +592,7 @@ def PLAY(url):
 	if (se == 'true' and sub == 'true'):
 		li.setSubtitles([srtsubs_path])
 	license_server = 'https://lic.drmtoday.com/license-proxy-widevine/cenc/'
-	license_headers = 'dt-custom-data = ' + dt_custom_data + '&x-dt-auth-token = ' + x_dt_auth_token + '&Origin = https://www.hbogo.hu&Content-Type = '
+	license_headers = 'dt-custom-data=' + dt_custom_data + '&x-dt-auth-token=' + x_dt_auth_token + '&Origin=https://www.hbogo.hu&Content-Type='
 	license_key = license_server + '|' + license_headers + '|R{SSM}|JBlicense'
 
 	protocol = 'ism'
@@ -602,7 +602,7 @@ def PLAY(url):
 	li.setProperty('inputstreamaddon', 'inputstream.adaptive')
 	li.setProperty('inputstream.adaptive.manifest_type', protocol)
 	li.setProperty('inputstream.adaptive.license_type', drm)
-	li.setProperty('inputstream.adaptive.license_data', 'ZmtqM2xqYVNkZmFsa3Izag == ')
+	li.setProperty('inputstream.adaptive.license_data', 'ZmtqM2xqYVNkZmFsa3Izag==')
 	li.setProperty('inputstream.adaptive.license_key', license_key)
 
 	xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
