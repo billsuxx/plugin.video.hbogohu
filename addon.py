@@ -23,7 +23,7 @@ __addon_id__= 'plugin.video.hbogohu'
 __Addon = xbmcaddon.Addon(__addon_id__)
 __settings__ = xbmcaddon.Addon(id = 'plugin.video.hbogohu')
 
-UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'
+UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'
 MUA = 'Dalvik/2.1.0 (Linux; U; Android 8.0.0; Nexus 5X Build/OPP3.170518.006)'
 
 LIST_CONTAINER_CONTENT_TYPE_MOVIE = 1
@@ -508,7 +508,6 @@ def PLAY(url):
 
 	if se == 'true':
 		try:
-			#print 'CID ' + cid
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/COMP/
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/APPLE/
 			#http://huapi.hbogo.eu/player50.svc/Content/json/HUN/SONY/
@@ -517,7 +516,6 @@ def PLAY(url):
 			opener = urllib2.build_opener()
 			f = opener.open(req)
 			jsonrsps = json.loads(f.read())
-			#print jsonrsps
 
 			try:
 				if jsonrsps['Subtitles'][0]['Code'] == Code:
@@ -574,7 +572,6 @@ def PLAY(url):
 	opener = urllib2.build_opener()
 	f = opener.open(req)
 	jsonrspp = json.loads(f.read())
-	print jsonrspp
 
 	try:
 		if jsonrspp['ErrorMessage']:
@@ -684,7 +681,6 @@ def SEARCH():
 			opener = urllib2.build_opener()
 			f = opener.open(req)
 			jsonrsp = json.loads(f.read())
-			#print jsonrsp
 
 			try:
 				if jsonrsp['ErrorMessage']:
