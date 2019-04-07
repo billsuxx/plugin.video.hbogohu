@@ -53,7 +53,7 @@ elif language == '2':
 	srtsubs_path = xbmc.translatePath('special://temp/hbogo.English.Forced.srt')
 
 
-md = xbmc.translatePath(__Addon.getAddonInfo('path') + "/resources/media/")
+md = xbmc.translatePath(__Addon.getAddonInfo('path') + '/resources/media/')
 search_string = urllib.unquote_plus(__settings__.getSetting('lastsearch'))
 
 operator = __settings__.getSetting('operator')
@@ -86,12 +86,12 @@ op_ids = [
 ]
 op_id = op_ids[int(operator)];
 
-individualization = ""
-goToken = ""
-customerId = ""
-GOcustomerId = ""
+individualization = ''
+goToken = ''
+customerId = ''
+GOcustomerId = ''
 sessionId = NON_AUTHENTICATED_OP_ID
-FavoritesGroupId = ""
+FavoritesGroupId = ''
 
 loggedin_headers = {
 	'User-Agent': UA,
@@ -117,12 +117,12 @@ def storeIndiv(indiv, custid):
 	global customerId
 
 	individualization = __settings__.getSetting('individualization')
-	if individualization == "":
+	if individualization == '':
 		__settings__.setSetting('individualization', indiv)
 		individualization = indiv
 
 	customerId = __settings__.getSetting('customerId')
-	if customerId == "":
+	if customerId == '':
 		__settings__.setSetting('customerId', custid)
 		customerId = custid
 
@@ -131,7 +131,7 @@ def storeFavgroup(favgroupid):
 	global FavoritesGroupId
 
 	FavoritesGroupId = __settings__.getSetting('FavoritesGroupId')
-	if FavoritesGroupId == "":
+	if FavoritesGroupId == '':
 		__settings__.setSetting('FavoritesGroupId', favgroupid)
 		FavoritesGroupId = favgroupid
 
@@ -188,16 +188,16 @@ def LOGIN():
 	individualization = __settings__.getSetting('individualization')
 	FavoritesGroupId = __settings__.getSetting('FavoritesGroupId')
 
-	if (individualization == "" or customerId == ""):
+	if (individualization == '' or customerId == ''):
 		jsonrsp = SILENTREGISTER()
 
-	if (FavoritesGroupId == ""):
+	if (FavoritesGroupId == ''):
 		GETFAVORITEGROUP()
 
-	if (username == "" or password == ""):
+	if (username == '' or password == ''):
 		xbmcgui.Dialog().ok('Hiba', 'Kérlek add meg a beállításoknál a belépési adatokat!')
-		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings("Accunt")
-		xbmc.executebuiltin("Container.Refresh")
+		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings('Accunt')
+		xbmc.executebuiltin('Container.Refresh')
 		LOGIN()
 
 	headers = {
@@ -222,64 +222,64 @@ def LOGIN():
 		url = 'https://hugwapi.hbogo.eu/v2.1/Authentication/json/HUN/COMP'
 
 	data_obj = {
-		"Action": "L",
-		"AppLanguage": None,
-		"ActivationCode": None,
-		"AllowedContents": [],
-		"AudioLanguage": None,
-		"AutoPlayNext": False,
-		"BirthYear": 1,
-		"CurrentDevice": {
-			"AppLanguage":"",
-			"AutoPlayNext": False,
-			"Brand": "Chromium",
-			"CreatedDate": "",
-			"DeletedDate": "",
-			"Id": NON_AUTHENTICATED_OP_ID,
-			"Individualization": individualization,
-			"IsDeleted": False,
-			"LastUsed": "",
-			"Modell": "62",
-			"Name": "",
-			"OSName": "Ubuntu",
-			"OSVersion": "undefined",
-			"Platform": "COMP",
-			"SWVersion": "2.4.2.4025.240",
-			"SubtitleSize": ""
+		'Action': 'L',
+		'AppLanguage': None,
+		'ActivationCode': None,
+		'AllowedContents': [],
+		'AudioLanguage': None,
+		'AutoPlayNext': False,
+		'BirthYear': 1,
+		'CurrentDevice': {
+			'AppLanguage':'',
+			'AutoPlayNext': False,
+			'Brand': 'Chromium',
+			'CreatedDate': '',
+			'DeletedDate': '',
+			'Id': NON_AUTHENTICATED_OP_ID,
+			'Individualization': individualization,
+			'IsDeleted': False,
+			'LastUsed': '',
+			'Modell': '62',
+			'Name': '',
+			'OSName': 'Ubuntu',
+			'OSVersion': 'undefined',
+			'Platform': 'COMP',
+			'SWVersion': '2.4.2.4025.240',
+			'SubtitleSize': ''
 		},
-		"CustomerCode": "",
-		"DebugMode": False,
-		"DefaultSubtitleLanguage": None,
-		"EmailAddress": username,
-		"FirstName": "",
-		"Gender": 0,
-		"Id": NON_AUTHENTICATED_OP_ID,
-		"IsAnonymus": True,
-		"IsPromo": False,
-		"Language": "HUN",
-		"LastName": "",
-		"Nick": "",
-		"NotificationChanges": 0,
-		"OperatorId": op_id,
-		"OperatorName": "",
-		"OperatorToken": "",
-		"ParentalControl": {
-			"Active": False,
-			"Password": "",
-			"Rating": 0,
-			"ReferenceId": NON_AUTHENTICATED_OP_ID
+		'CustomerCode': '',
+		'DebugMode': False,
+		'DefaultSubtitleLanguage': None,
+		'EmailAddress': username,
+		'FirstName': '',
+		'Gender': 0,
+		'Id': NON_AUTHENTICATED_OP_ID,
+		'IsAnonymus': True,
+		'IsPromo': False,
+		'Language': 'HUN',
+		'LastName': '',
+		'Nick': '',
+		'NotificationChanges': 0,
+		'OperatorId': op_id,
+		'OperatorName': '',
+		'OperatorToken': '',
+		'ParentalControl': {
+			'Active': False,
+			'Password': '',
+			'Rating': 0,
+			'ReferenceId': NON_AUTHENTICATED_OP_ID
 		},
-		"Password": password,
-		"PromoCode": "",
-		"ReferenceId": NON_AUTHENTICATED_OP_ID,
-		"SecondaryEmailAddress": "",
-		"SecondarySpecificData": None,
-		"ServiceCode": "",
-		"SubscribeForNewsletter": False,
-		"SubscState": None,
-		"SubtitleSize": "",
-		"TVPinCode": "",
-		"ZipCode": ""
+		'Password': password,
+		'PromoCode': '',
+		'ReferenceId': NON_AUTHENTICATED_OP_ID,
+		'SecondaryEmailAddress': '',
+		'SecondarySpecificData': None,
+		'ServiceCode': '',
+		'SubscribeForNewsletter': False,
+		'SubscState': None,
+		'SubtitleSize': '',
+		'TVPinCode': '',
+		'ZipCode': ''
 	}
 
 	data = json.dumps(data_obj)
@@ -299,8 +299,8 @@ def LOGIN():
 	sessionId = jsonrspl['SessionId']
 	if sessionId == NON_AUTHENTICATED_OP_ID:
 		xbmcgui.Dialog().ok('Login Hiba!', 'Ellenőrizd a belépési adatokat!')
-		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings("Accunt")
-		xbmc.executebuiltin("Action(Back)")
+		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings('Accunt')
+		xbmc.executebuiltin('Action(Back)')
 	else:
 		goToken = jsonrspl['Token']
 		GOcustomerId = jsonrspl['Customer']['Id']
@@ -315,10 +315,10 @@ def CATEGORIES():
 
 	addDir('Keresés...', 'search', '', 4,'')
 
-	if (FavoritesGroupId == ""):
+	if (FavoritesGroupId == ''):
 		GETFAVORITEGROUP()
 
-	if (FavoritesGroupId != ""):
+	if (FavoritesGroupId != ''):
 		addDir('Lejátszási listád', 'https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/' + FavoritesGroupId + '/-/-/-/1000/-/-/false', '', 1, md + 'FavoritesFolder.png')
 
 	req = urllib2.Request('https://huapi.hbogo.eu/v5/Groups/json/HUN/COMP', None, loggedin_headers)
@@ -358,7 +358,7 @@ def list_add_movie_link(item):
 	production_year = item['ProductionYear']
 
 	addLink(object_url, plot, age_rating, imdb, background_url, cast, director, writer, duration, genre, name, original_name, production_year, 5)
-	#xbmc.log("GO: FILMI: DUMP: " + item['ObjectUrl'], xbmc.LOGNOTICE)
+	#xbmc.log('GO: FILMI: DUMP: ' + item['ObjectUrl'], xbmc.LOGNOTICE)
 
 def list_add_series_episode(item):
 	# If it's a series episode    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
@@ -535,8 +535,8 @@ def PLAY(url):
 				for sub in subs:
 					row = row + 1
 					buffer += str(row) + '\n'
-					buffer += "%s,%03d" % (sub[0], int(sub[1])) + ' --> ' + "%s,%03d" % (sub[2], int(sub[3])) + '\n'
-					buffer += urllib.unquote_plus(sub[4]).replace('<br/>', '\n').replace('<br />', '\n').replace("\r\n", "").replace("&lt;", "<").replace("&gt;", ">").replace("\n    ","").strip()
+					buffer += '%s,%03d' % (sub[0], int(sub[1])) + ' --> ' + '%s,%03d' % (sub[2], int(sub[3])) + '\n'
+					buffer += urllib.unquote_plus(sub[4]).replace('<br/>', '\n').replace('<br />', '\n').replace('\r\n', '').replace('&lt;', '<').replace('&gt;', '>').replace('\n    ','').strip()
 					buffer += '\n\n'
 					sub = 'true'
 					with open(srtsubs_path, "w") as subfile:
@@ -582,10 +582,15 @@ def PLAY(url):
 	except:
 		pass
 
-	MediaUrl = jsonrspp['Purchase']['MediaUrl'] + "/Manifest"
+	MediaUrl = jsonrspp['Purchase']['MediaUrl'] + '/Manifest'
 	PlayerSessionId = jsonrspp['Purchase']['PlayerSessionId']
 	x_dt_auth_token = jsonrspp['Purchase']['AuthToken']
-	dt_custom_data = base64.b64encode("{\"userId\":\"" + GOcustomerId + "\",\"sessionId\":\"" + PlayerSessionId + "\",\"merchant\":\"hboeurope\"}")
+
+	dt_custom_data = base64.b64encode(json.dumps({
+		'userId': GOcustomerId,
+		'sessionId': PlayerSessionId,
+		'merchant': 'hboeurope',
+	}))
 
 
 	li = xbmcgui.ListItem(iconImage = thumbnail, thumbnailImage = thumbnail, path = MediaUrl)
@@ -670,7 +675,7 @@ def SEARCH():
 	searchText = ''
 	if (keyb.isConfirmed()):
 		searchText = urllib.quote_plus(keyb.getText())
-		if searchText == "":
+		if searchText == '':
 			addDir('Nincs találat', '', '', '', md + 'DefaultFolderBack.png')
 		else:
 			__settings__.setSetting('lastsearch', searchText)
@@ -707,7 +712,7 @@ def SEARCH():
 def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode):
 	cid = ou.rsplit('/', 2)[1]
 
-	u = sys.argv[0] + "?" + urllib.urlencode({
+	u = sys.argv[0] + '?' + urllib.urlencode({
 		'url': url,
 		'mode': str(mode),
 		'name:': name,
@@ -717,36 +722,36 @@ def addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, nam
 
 	liz = xbmcgui.ListItem(name, iconImage = bu, thumbnailImage = bu)
 	liz.setArt({ 'thumb': bu, 'poster': bu, 'banner' : bu, 'fanart': bu })
-	liz.setInfo( type = "Video", infoLabels = {
-		"plot": plot,
-		"mpaa": str(ar) + '+',
-		"rating": imdb,
-		"cast": cast,
-		"director": director,
-		"writer": writer,
-		"duration": duration,
-		"genre": genre,
-		"title": name,
-		"originaltitle": on,
-		"year": py
+	liz.setInfo( type = 'Video', infoLabels = {
+		'plot': plot,
+		'mpaa': str(ar) + '+',
+		'rating': imdb,
+		'cast': cast,
+		'director': director,
+		'writer': writer,
+		'duration': duration,
+		'genre': genre,
+		'title': name,
+		'originaltitle': on,
+		'year': py
 	})
 	liz.addStreamInfo('video', { 'width': 1280, 'height': 720 })
 	liz.addStreamInfo('video', { 'aspect': 1.78, 'codec': 'h264' })
 	liz.addStreamInfo('audio', { 'codec': 'aac', 'channels': 2 })
-	liz.setProperty("IsPlayable" , "true")
+	liz.setProperty('IsPlayable' , 'true')
 	ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = u, listitem = liz, isFolder = False)
 	return ok
 
 
 def addDir(name, url, plot, mode, iconimage):
-	u = sys.argv[0] + "?" + urllib.urlencode({
+	u = sys.argv[0] + '?' + urllib.urlencode({
 		'url': url,
 		'mode': str(mode),
 		'name': name
 	})
 
-	liz = xbmcgui.ListItem(name, iconImage = "DefaultFolder.png", thumbnailImage = iconimage)
-	liz.setInfo( type = "Video", infoLabels = { "Title": name, "Plot": plot } )
+	liz = xbmcgui.ListItem(name, iconImage = 'DefaultFolder.png', thumbnailImage = iconimage)
+	liz.setInfo( type = 'Video', infoLabels = { 'Title': name, 'Plot': plot } )
 
 	ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = u, listitem = liz, isFolder = True)
 
@@ -794,27 +799,27 @@ def main():
 	params = get_params()
 
 	try:
-		url = urllib.unquote_plus(params["url"])
+		url = urllib.unquote_plus(params['url'])
 	except:
 		pass
 
 	try:
-		name = urllib.unquote_plus(params["name"])
+		name = urllib.unquote_plus(params['name'])
 	except:
 		pass
 
 	try:
-		thumbnail = str(params["thumbnail"])
+		thumbnail = str(params['thumbnail'])
 	except:
 		pass
 
 	try:
-		mode = int(params["mode"])
+		mode = int(params['mode'])
 	except:
 		pass
 
 	try:
-		cid = str(params["cid"])
+		cid = str(params['cid'])
 	except:
 		pass
 
@@ -847,7 +852,7 @@ def main():
 
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()
 
 # vim: sw=2:ts=2:noexpandtab
