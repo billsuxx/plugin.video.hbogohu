@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import base64
+import json
+import os
+import random
 import re
 import sys
-import os
+import time
 import urllib
 import urllib2
+
+import inputstreamhelper
 import requests
-import json
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
-import xbmcaddon
 import xbmcvfs
-import base64
-import time
-import random
-import inputstreamhelper
 
 mode = None
 
