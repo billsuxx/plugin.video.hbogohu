@@ -7,6 +7,7 @@ import sys
 from urlparse import parse_qsl
 import urllib
 import urllib2
+from uuid import uuid4
 
 import inputstreamhelper
 import requests
@@ -101,20 +102,21 @@ loggedin_headers = {
 }
 
 
-def store_individualization(indiv, custid):
+def store_individualization():
     # individualization es customerId eltarolasa
     global individualization
     global customer_id
 
     individualization = __addon__.getSetting("individualization")
+    sys.stderr.write(individualization)
     if not individualization:
-        __addon__.setSetting("individualization", indiv)
-        individualization = indiv
+        individualization = str(uuid4())
+        __addon__.setSetting("individualization", individualization)
 
     customer_id = __addon__.getSetting("customerId")
     if not customer_id:
-        __addon__.setSetting("customerId", custid)
-        customer_id = custid
+        customer_id = str(uuid4())
+        __addon__.setSetting("customerId", customer_id)
 
 
 def store_favgroup(favgroupid):
@@ -125,34 +127,6 @@ def store_favgroup(favgroupid):
     if not favorites_group_id:
         __addon__.setSetting("FavoritesGroupId", favgroupid)
         favorites_group_id = favgroupid
-
-
-def silent_register():
-    # eszkoz regisztracioja
-    global go_token
-    global individualization
-    global customer_id
-    global session_id
-
-    req = urllib2.Request(
-        "https://hu.hbogo.eu/services/settings/silentregister.aspx",
-        None,
-        loggedin_headers,
-    )
-
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrsp = json.loads(f.read())
-
-    if jsonrsp["Data"]["ErrorMessage"]:
-        xbmcgui.Dialog().ok("Error", jsonrsp["Data"]["ErrorMessage"])
-
-    indiv = jsonrsp["Data"]["Customer"]["CurrentDevice"]["Individualization"]
-    custid = jsonrsp["Data"]["Customer"]["CurrentDevice"]["Id"]
-    store_individualization(indiv, custid)
-
-    session_id = jsonrsp["Data"]["SessionId"]
-    return jsonrsp
 
 
 def get_favorite_group():
@@ -189,7 +163,7 @@ def login():
     favorites_group_id = __addon__.getSetting("FavoritesGroupId")
 
     if not all((individualization, customer_id)):
-        silent_register()
+        store_individualization()
 
     if not favorites_group_id:
         get_favorite_group()
@@ -366,7 +340,7 @@ def list_add_movie_link(item):
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = item["Cast"].split(", ", 1)[0]
+    cast = [item["Cast"].split(", ")][0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -406,7 +380,7 @@ def list_add_series_episode(item):
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = item["Cast"].split(", ", 1)[0]
+    cast = [item["Cast"].split(", ")][0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -538,7 +512,7 @@ def episode_add_episode(item):
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = item["Cast"].split(", ", 1)[0]
+    cast = [item["Cast"].split(", ")][0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -754,7 +728,7 @@ def search_add_movie(item):
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = item["Cast"].split(", ", 1)[0]
+    cast = [item["Cast"].split(", ")][0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -789,7 +763,7 @@ def search_add_series_episode(item):
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = item["Cast"].split(", ", 1)[0]
+    cast = [item["Cast"].split(", ")][0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -832,49 +806,50 @@ def search_add_series(item):
 def search():
     keyb = xbmc.Keyboard(search_string, "Filmek, sorozatok keresése...")
     keyb.doModal()
-    if keyb.isConfirmed():
-        search_text = urllib.quote_plus(keyb.getText())
-        if not search_text:
+    if not keyb.isConfirmed():
+        exit()
+    search_text = urllib.quote_plus(keyb.getText())
+    if not search_text:
+        add_directory(
+            "Nincs találat", "", "", "", media_path + "DefaultFolderBack.png"
+        )
+    else:
+        __addon__.setSetting("lastsearch", search_text)
+
+        req = urllib2.Request(
+            "https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/"
+            + search_text.decode("utf-8", "ignore").encode("utf-8", "ignore")
+            + "/0",
+            None,
+            loggedin_headers,
+        )
+        opener = urllib2.build_opener()
+        f = opener.open(req)
+        jsonrsp = json.loads(f.read())
+
+        if jsonrsp.get("ErrorMessage"):
+            xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
+
+        br = 0
+        items = jsonrsp["Container"][0]["Contents"]["Items"]
+        for item in items:
+            if (
+                item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE
+                or item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE_ALT
+            ):  # 1,7 = MOVIE/EXTRAS, 2 = SERIES(serial), 3 = SERIES(episode)
+                # Ако е филм    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+                search_add_movie(item)
+            elif item["ContentType"] == SEARCH_CONTENT_TYPE_SERIES_EPISODE:
+                # Ако е Epizód на сериал    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+                search_add_series_episode(item)
+            else:
+                search_add_series(item)
+                # Ако е сериал
+            br = br + 1
+        if br == 0:
             add_directory(
                 "Nincs találat", "", "", "", media_path + "DefaultFolderBack.png"
             )
-        else:
-            __addon__.setSetting("lastsearch", search_text)
-
-            req = urllib2.Request(
-                "https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/"
-                + search_text.decode("utf-8", "ignore").encode("utf-8", "ignore")
-                + "/0",
-                None,
-                loggedin_headers,
-            )
-            opener = urllib2.build_opener()
-            f = opener.open(req)
-            jsonrsp = json.loads(f.read())
-
-            if jsonrsp.get("ErrorMessage"):
-                xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
-
-            br = 0
-            items = jsonrsp["Container"][0]["Contents"]["Items"]
-            for item in items:
-                if (
-                    item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE
-                    or item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE_ALT
-                ):  # 1,7 = MOVIE/EXTRAS, 2 = SERIES(serial), 3 = SERIES(episode)
-                    # Ако е филм    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
-                    search_add_movie(item)
-                elif item["ContentType"] == SEARCH_CONTENT_TYPE_SERIES_EPISODE:
-                    # Ако е Epizód на сериал    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
-                    search_add_series_episode(item)
-                else:
-                    search_add_series(item)
-                    # Ако е сериал
-                br = br + 1
-            if br == 0:
-                add_directory(
-                    "Nincs találat", "", "", "", media_path + "DefaultFolderBack.png"
-                )
 
 
 def add_link(
@@ -952,10 +927,10 @@ if __name__ == "__main__":
     url = params.get("url")
     name = params.get("name")
     thumbnail = params.get("thumbnail")
-    mode = int(params.get("mode"))
+    mode = int(params.get("mode", "-1"))
     cid = params.get("cid")
 
-    if not any((mode, url)):
+    if not mode or not url:
         categories()
 
     elif mode == MODE_LISTING:
@@ -974,7 +949,7 @@ if __name__ == "__main__":
         play(url)
 
     elif mode == MODE_SILENT_REGISTER:
-        silent_register()
+        store_individualization()
 
     elif mode == MODE_LOGIN:
         login()
