@@ -900,7 +900,7 @@ if __name__ == "__main__":
     url = params.get("url")
     name = params.get("name")
     thumbnail = params.get("thumbnail")
-    mode = int(params.get("mode", "-1"))
+    mode = int(params.get("mode", "0"))
     cid = params.get("cid")
 
     if not mode or not url:
