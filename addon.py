@@ -13,16 +13,12 @@ import urllib2
 import inputstreamhelper
 import requests
 import xbmc
-import xbmcaddon
+from xbmcaddon import Addon
 import xbmcgui
 import xbmcplugin
 import xbmcvfs
 
-mode = None
-
-__addon_id__= 'plugin.video.hbogohu'
-__Addon = xbmcaddon.Addon(__addon_id__)
-__settings__ = xbmcaddon.Addon(id = 'plugin.video.hbogohu')
+__addon__ = Addon()
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'
 MUA = 'Dalvik/2.1.0 (Linux; U; Android 8.0.0; Nexus 5X Build/OPP3.170518.006)'
@@ -33,12 +29,10 @@ LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
 
 NON_AUTHENTICATED_OP_ID = '00000000-0000-0000-0000-000000000000'
 
-se = __settings__.getSetting('se')
-language = __settings__.getSetting('language')
+se = __addon__.getSetting('se')
+language = __addon__.getSetting('language')
 
-params = None
-url = None
-name = None
+mode = params = url = name = None
 
 if language == '0':
 	lang = 'Hungarian'
@@ -54,10 +48,10 @@ elif language == '2':
 	srtsubs_path = xbmc.translatePath('special://temp/hbogo.English.Forced.srt')
 
 
-md = xbmc.translatePath(__Addon.getAddonInfo('path') + '/resources/media/')
-search_string = urllib.unquote_plus(__settings__.getSetting('lastsearch'))
+md = xbmc.translatePath(__addon__.getAddonInfo('path') + '/resources/media/')
+search_string = urllib.unquote_plus(__addon__.getSetting('lastsearch'))
 
-operator = __settings__.getSetting('operator')
+operator = __addon__.getSetting('operator')
 
 op_ids = [
 	NON_AUTHENTICATED_OP_ID, # Anonymous NoAuthenticated
@@ -85,7 +79,7 @@ op_ids = [
 	'6a52efe0-54c4-4197-8c55-86ee7a63cd04', # HBO Development Hungary
 	'f320aa2c-e40e-49c2-8cdd-1ebef2ac6f26', # HBO GO Vip/Club Hungary
 ]
-op_id = op_ids[int(operator)];
+op_id = op_ids[int(operator)]
 
 individualization = ''
 goToken = ''
@@ -117,23 +111,23 @@ def storeIndiv(indiv, custid):
 	global individualization
 	global customerId
 
-	individualization = __settings__.getSetting('individualization')
+	individualization = __addon__.getSetting('individualization')
 	if individualization == '':
-		__settings__.setSetting('individualization', indiv)
+		__addon__.setSetting('individualization', indiv)
 		individualization = indiv
 
-	customerId = __settings__.getSetting('customerId')
+	customerId = __addon__.getSetting('customerId')
 	if customerId == '':
-		__settings__.setSetting('customerId', custid)
+		__addon__.setSetting('customerId', custid)
 		customerId = custid
 
 # FavoritesGroupId eltarolasa
 def storeFavgroup(favgroupid):
 	global FavoritesGroupId
 
-	FavoritesGroupId = __settings__.getSetting('FavoritesGroupId')
+	FavoritesGroupId = __addon__.getSetting('FavoritesGroupId')
 	if FavoritesGroupId == '':
-		__settings__.setSetting('FavoritesGroupId', favgroupid)
+		__addon__.setSetting('FavoritesGroupId', favgroupid)
 		FavoritesGroupId = favgroupid
 
 # eszkoz regisztracioja
@@ -153,7 +147,7 @@ def SILENTREGISTER():
 		xbmcgui.Dialog().ok('Error', jsonrsp['Data']['ErrorMessage'])
 
 	indiv = jsonrsp['Data']['Customer']['CurrentDevice']['Individualization']
-	custid = jsonrsp['Data']['Customer']['CurrentDevice']['Id'];
+	custid = jsonrsp['Data']['Customer']['CurrentDevice']['Id']
 	storeIndiv(indiv, custid)
 
 	sessionId= jsonrsp['Data']['SessionId']
@@ -182,22 +176,22 @@ def LOGIN():
 	global loggedin_headers
 	global FavoritesGroupId
 
-	operator = __settings__.getSetting('operator')
-	username = __settings__.getSetting('username')
-	password = __settings__.getSetting('password')
-	customerId = __settings__.getSetting('customerId')
-	individualization = __settings__.getSetting('individualization')
-	FavoritesGroupId = __settings__.getSetting('FavoritesGroupId')
+	operator = __addon__.getSetting('operator')
+	username = __addon__.getSetting('username')
+	password = __addon__.getSetting('password')
+	customerId = __addon__.getSetting('customerId')
+	individualization = __addon__.getSetting('individualization')
+	FavoritesGroupId = __addon__.getSetting('FavoritesGroupId')
 
 	if (individualization == '' or customerId == ''):
-		jsonrsp = SILENTREGISTER()
+		SILENTREGISTER()
 
 	if (FavoritesGroupId == ''):
 		GETFAVORITEGROUP()
 
 	if (username == '' or password == ''):
 		xbmcgui.Dialog().ok('Hiba', 'Kérlek add meg a beállításoknál a belépési adatokat!')
-		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings('Accunt')
+		__addon__.openSettings('Accunt')
 		xbmc.executebuiltin('Container.Refresh')
 		LOGIN()
 
@@ -300,7 +294,7 @@ def LOGIN():
 	sessionId = jsonrspl['SessionId']
 	if sessionId == NON_AUTHENTICATED_OP_ID:
 		xbmcgui.Dialog().ok('Login Hiba!', 'Ellenőrizd a belépési adatokat!')
-		xbmcaddon.Addon(id = 'plugin.video.hbogohu').openSettings('Accunt')
+		__addon__.openSettings('Accunt')
 		xbmc.executebuiltin('Action(Back)')
 	else:
 		goToken = jsonrspl['Token']
@@ -452,7 +446,7 @@ def SEASON(url):
 
 	items = jsonrsp['Parent']['ChildContents']['Items']
 	for season in range(0, len(items)):
-		item = items[season];
+		item = items[season]
 		season_add_season(item)
 
 def episode_add_episode(item):
@@ -528,7 +522,7 @@ def PLAY(url):
 				data = response.read()
 				response.close()
 
-				subs = re.compile('<p[^>]+begin="([^"]+)\D(\d+)"[^>]+end="([^"]+)\D(\d+)"[^>]*>([\w\W]+?)</p>').findall(data)
+				subs = re.compile(r'<p[^>]+begin="([^"]+)\D(\d+)"[^>]+end="([^"]+)\D(\d+)"[^>]*>([\w\W]+?)</p>').findall(data)
 				row = 0
 				buffer = ''
 				for sub in subs:
@@ -676,7 +670,7 @@ def SEARCH():
 		if searchText == '':
 			addDir('Nincs találat', '', '', '', md + 'DefaultFolderBack.png')
 		else:
-			__settings__.setSetting('lastsearch', searchText)
+			__addon__.setSetting('lastsearch', searchText)
 
 			req = urllib2.Request('https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/' + searchText.decode('utf-8', 'ignore').encode('utf-8', 'ignore') + '/0', None, loggedin_headers)
 			opener = urllib2.build_opener()
