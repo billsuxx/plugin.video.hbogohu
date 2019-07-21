@@ -23,9 +23,9 @@ __addon__ = Addon()
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 MUA = "Dalvik/2.1.0 (Linux; U; Android 8.0.0; Nexus 5X Build/OPP3.170518.006)"
 
-LIST_CONTAINER_CONTENT_TYPE_MOVIE = 1
-LIST_CONTAINER_CONTENT_TYPE_SERIES = 2
-LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
+LISTING_CONTAINER_CONTENT_TYPE_MOVIE = 1
+LISTING_CONTAINER_CONTENT_TYPE_SERIES = 2
+LISTING_CONTAINER_CONTENT_TYPE_SERIES_EPISODE = 3
 
 NON_AUTHENTICATED_OP_ID = "00000000-0000-0000-0000-000000000000"
 
@@ -34,21 +34,17 @@ language = __addon__.getSetting("language")
 
 mode = params = url = name = None
 
-if language == "0":
+if language in ["0", "1"]:
     lang = "Hungarian"
-    Code = "HUN"
-    srtsubs_path = xbmc.translatePath("special://temp/hbogo.Hungarian.Forced.srt")
-elif language == "1":
-    lang = "Hungarian"
-    Code = "HUN"
+    lang_code = "HUN"
     srtsubs_path = xbmc.translatePath("special://temp/hbogo.Hungarian.Forced.srt")
 elif language == "2":
     lang = "English"
-    Code = "ENG"
+    lang_code = "ENG"
     srtsubs_path = xbmc.translatePath("special://temp/hbogo.English.Forced.srt")
 
 
-md = xbmc.translatePath(__addon__.getAddonInfo("path") + "/resources/media/")
+media_path = xbmc.translatePath(__addon__.getAddonInfo("path") + "/resources/media/")
 search_string = urllib.unquote_plus(__addon__.getSetting("lastsearch"))
 
 operator = __addon__.getSetting("operator")
@@ -82,11 +78,11 @@ op_ids = [
 op_id = op_ids[int(operator)]
 
 individualization = ""
-goToken = ""
-customerId = ""
-GOcustomerId = ""
-sessionId = NON_AUTHENTICATED_OP_ID
-FavoritesGroupId = ""
+go_token = ""
+customer_id = ""
+go_customer_id = ""
+session_id = NON_AUTHENTICATED_OP_ID
+favorites_group_id = ""
 
 loggedin_headers = {
     "User-Agent": UA,
@@ -107,37 +103,37 @@ loggedin_headers = {
 }
 
 # individualization es customerId eltarolasa
-def storeIndiv(indiv, custid):
+def store_individualization(indiv, custid):
     global individualization
-    global customerId
+    global customer_id
 
     individualization = __addon__.getSetting("individualization")
     if individualization == "":
         __addon__.setSetting("individualization", indiv)
         individualization = indiv
 
-    customerId = __addon__.getSetting("customerId")
-    if customerId == "":
-        __addon__.setSetting("customerId", custid)
-        customerId = custid
+    customer_id = __addon__.getSetting("customerId")
+    if customer_id == "":
+        __addon__.setSetting("customer_id", custid)
+        customer_id = custid
 
 
-# FavoritesGroupId eltarolasa
-def storeFavgroup(favgroupid):
-    global FavoritesGroupId
+# favorites_group_id eltarolasa
+def store_favgroup(favgroupid):
+    global favorites_group_id
 
-    FavoritesGroupId = __addon__.getSetting("FavoritesGroupId")
-    if FavoritesGroupId == "":
+    favorites_group_id = __addon__.getSetting("FavoritesGroupId")
+    if favorites_group_id == "":
         __addon__.setSetting("FavoritesGroupId", favgroupid)
-        FavoritesGroupId = favgroupid
+        favorites_group_id = favgroupid
 
 
 # eszkoz regisztracioja
-def SILENTREGISTER():
-    global goToken
+def silent_register():
+    global go_token
     global individualization
-    global customerId
-    global sessionId
+    global customer_id
+    global session_id
 
     req = urllib2.Request(
         "https://hu.hbogo.eu/services/settings/silentregister.aspx",
@@ -154,15 +150,15 @@ def SILENTREGISTER():
 
     indiv = jsonrsp["Data"]["Customer"]["CurrentDevice"]["Individualization"]
     custid = jsonrsp["Data"]["Customer"]["CurrentDevice"]["Id"]
-    storeIndiv(indiv, custid)
+    store_individualization(indiv, custid)
 
-    sessionId = jsonrsp["Data"]["SessionId"]
+    session_id = jsonrsp["Data"]["SessionId"]
     return jsonrsp
 
 
 # lejatszasi lista id lekerdezes
-def GETFAVORITEGROUP():
-    global FavoritesGroupId
+def get_favorite_group():
+    global favorites_group_id
 
     req = urllib2.Request(
         "https://huapi.hbogo.eu/v7/Settings/json/HUN/COMP", None, loggedin_headers
@@ -173,31 +169,31 @@ def GETFAVORITEGROUP():
     jsonrsp = json.loads(f.read())
 
     favgroupId = jsonrsp["FavoritesGroupId"]
-    storeFavgroup(favgroupId)
+    store_favgroup(favgroupId)
 
 
 # belepes
-def LOGIN():
-    global sessionId
-    global goToken
-    global customerId
-    global GOcustomerId
+def login():
+    global session_id
+    global go_token
+    global customer_id
+    global go_customer_id
     global individualization
     global loggedin_headers
-    global FavoritesGroupId
+    global favorites_group_id
 
     operator = __addon__.getSetting("operator")
     username = __addon__.getSetting("username")
     password = __addon__.getSetting("password")
-    customerId = __addon__.getSetting("customerId")
+    customer_id = __addon__.getSetting("customerId")
     individualization = __addon__.getSetting("individualization")
-    FavoritesGroupId = __addon__.getSetting("FavoritesGroupId")
+    favorites_group_id = __addon__.getSetting("FavoritesGroupId")
 
-    if individualization == "" or customerId == "":
-        SILENTREGISTER()
+    if individualization == "" or customer_id == "":
+        silent_register()
 
-    if FavoritesGroupId == "":
-        GETFAVORITEGROUP()
+    if favorites_group_id == "":
+        get_favorite_group()
 
     if username == "" or password == "":
         xbmcgui.Dialog().ok(
@@ -205,7 +201,7 @@ def LOGIN():
         )
         __addon__.openSettings("Accunt")
         xbmc.executebuiltin("Container.Refresh")
-        LOGIN()
+        login()
 
     headers = {
         "Origin": "https://gateway.hbogo.eu",
@@ -221,7 +217,7 @@ def LOGIN():
         "Content-Type": "application/json",
     }
 
-    # todo: a gatewayes hivasok helyett lehet vissza lehet alni a bulgar verziora, de jelenleg igy tuti mukodik
+    # TODO: a gatewayes hivasok helyett lehet vissza lehet alni a bulgar verziora, de jelenleg igy tuti mukodik
     # a linkek a weboldalrol lettek kiszedve
     if operator == "1":
         url = "https://api.ugw.hbogo.eu/v3.0/Authentication/HUN/JSON/HUN/COMP"
@@ -300,41 +296,41 @@ def LOGIN():
     except:
         pass
 
-    customerId = jsonrspl["Customer"]["CurrentDevice"]["Id"]
+    customer_id = jsonrspl["Customer"]["CurrentDevice"]["Id"]
     individualization = jsonrspl["Customer"]["CurrentDevice"]["Individualization"]
 
-    sessionId = jsonrspl["SessionId"]
-    if sessionId == NON_AUTHENTICATED_OP_ID:
+    session_id = jsonrspl["SessionId"]
+    if session_id == NON_AUTHENTICATED_OP_ID:
         xbmcgui.Dialog().ok("Login Hiba!", "Ellenőrizd a belépési adatokat!")
         __addon__.openSettings("Accunt")
         xbmc.executebuiltin("Action(Back)")
     else:
-        goToken = jsonrspl["Token"]
-        GOcustomerId = jsonrspl["Customer"]["Id"]
+        go_token = jsonrspl["Token"]
+        go_customer_id = jsonrspl["Customer"]["Id"]
 
-        loggedin_headers["GO-SessionId"] = str(sessionId)
-        loggedin_headers["GO-Token"] = str(goToken)
-        loggedin_headers["GO-CustomerId"] = str(GOcustomerId)
+        loggedin_headers["GO-SessionId"] = str(session_id)
+        loggedin_headers["GO-Token"] = str(go_token)
+        loggedin_headers["GO-CustomerId"] = str(go_customer_id)
 
 
 # kategoria
-def CATEGORIES():
-    global FavoritesGroupId
+def categories():
+    global favorites_group_id
 
-    addDir("Keresés...", "search", "", 4, "")
+    add_directory("Keresés...", "search", "", 4, "")
 
-    if FavoritesGroupId == "":
-        GETFAVORITEGROUP()
+    if favorites_group_id == "":
+        get_favorite_group()
 
-    if FavoritesGroupId != "":
-        addDir(
+    if favorites_group_id != "":
+        add_directory(
             "Lejátszási listád",
             "https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/"
-            + FavoritesGroupId
+            + favorites_group_id
             + "/-/-/-/1000/-/-/false",
             "",
             1,
-            md + "FavoritesFolder.png",
+            media_path + "FavoritesFolder.png",
         )
 
     req = urllib2.Request(
@@ -351,19 +347,19 @@ def CATEGORIES():
         pass
 
     for cat in range(0, len(jsonrsp["Items"])):
-        addDir(
+        add_directory(
             jsonrsp["Items"][cat]["Name"].encode("utf-8", "ignore"),
             jsonrsp["Items"][cat]["ObjectUrl"].replace(
                 "/0/{sort}/{pageIndex}/{pageSize}/0/0", "/0/0/1/1024/0/0"
             ),
             "",
             1,
-            md + "DefaultFolder.png",
+            media_path + "DefaultFolder.png",
         )
 
 
 def list_add_movie_link(item):
-    # if it's a movie    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+    # if it's a movie    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
     plot = item["Abstract"].encode("utf-8", "ignore")
 
     if "AvailabilityTo" in item:
@@ -388,7 +384,7 @@ def list_add_movie_link(item):
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
 
-    addLink(
+    add_link(
         object_url,
         plot,
         age_rating,
@@ -408,7 +404,7 @@ def list_add_movie_link(item):
 
 
 def list_add_series_episode(item):
-    # If it's a series episode    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+    # If it's a series episode    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
     plot = item["Abstract"].encode("utf-8", "ignore")
     if item["AvailabilityTo"] is not None:
         plot = (
@@ -437,7 +433,7 @@ def list_add_series_episode(item):
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
 
-    addLink(
+    add_link(
         object_url,
         plot,
         age_rating,
@@ -462,26 +458,26 @@ def list_add_series(item):
     abstract = item["Abstract"].encode("utf-8", "ignore")
     mode = 2
     background_url = item["BackgroundUrl"]
-    addDir(name, object_url, abstract, mode, background_url)
+    add_directory(name, object_url, abstract, mode, background_url)
 
 
 def list_add_subcategory(item):
-    addDir(
+    add_directory(
         item["Name"].encode("utf-8", "ignore"),
         item["ObjectUrl"],
         "",
         1,
-        md + "DefaultFolder.png",
+        media_path + "DefaultFolder.png",
     )
 
 
 # lista
-def LIST(url):
-    global sessionId
+def listing(url):
+    global session_id
     global loggedin_headers
 
-    if sessionId == NON_AUTHENTICATED_OP_ID:
-        LOGIN()
+    if session_id == NON_AUTHENTICATED_OP_ID:
+        login()
 
     req = urllib2.Request(url, None, loggedin_headers)
     opener = urllib2.build_opener()
@@ -506,11 +502,11 @@ def LIST(url):
             content_type = item["ContentType"]
 
             if (
-                content_type == LIST_CONTAINER_CONTENT_TYPE_MOVIE
+                content_type == LISTING_CONTAINER_CONTENT_TYPE_MOVIE
             ):  # 1 = MOVIE/EXTRAS, 2 = SERIES(serial), 3 = SERIES(episode)
                 list_add_movie_link(item)
 
-            elif content_type == LIST_CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
+            elif content_type == LISTING_CONTAINER_CONTENT_TYPE_SERIES_EPISODE:
                 list_add_series_episode(item)
 
             else:
@@ -518,7 +514,7 @@ def LIST(url):
 
 
 def season_add_season(item):
-    addDir(
+    add_directory(
         item["Name"].encode("utf-8", "ignore"),
         item["ObjectUrl"],
         item["Abstract"].encode("utf-8", "ignore"),
@@ -528,7 +524,7 @@ def season_add_season(item):
 
 
 # evadok
-def SEASON(url):
+def season(url):
     req = urllib2.Request(url, None, loggedin_headers)
     opener = urllib2.build_opener()
     f = opener.open(req)
@@ -547,7 +543,7 @@ def SEASON(url):
 
 
 def episode_add_episode(item):
-    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
     plot = item["Abstract"].encode("utf-8", "ignore")
     if "AvailabilityTo" in item:
         if item["AvailabilityTo"] is not None:
@@ -576,7 +572,7 @@ def episode_add_episode(item):
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
 
-    addLink(
+    add_link(
         object_url,
         plot,
         age_rating,
@@ -595,7 +591,7 @@ def episode_add_episode(item):
 
 
 # epizodok
-def EPISODE(url):
+def episode(url):
     req = urllib2.Request(url, None, loggedin_headers)
     opener = urllib2.build_opener()
     f = opener.open(req)
@@ -614,16 +610,16 @@ def EPISODE(url):
 
 
 # lejatszas
-def PLAY(url):
-    global goToken
+def play(url):
+    global go_token
     global individualization
-    global customerId
-    global GOcustomerId
-    global sessionId
+    global customer_id
+    global go_customer_id
+    global session_id
     global loggedin_headers
 
-    if sessionId == NON_AUTHENTICATED_OP_ID:
-        LOGIN()
+    if session_id == NON_AUTHENTICATED_OP_ID:
+        login()
 
     if se == "true":
         try:
@@ -641,9 +637,9 @@ def PLAY(url):
             jsonrsps = json.loads(f.read())
 
             try:
-                if jsonrsps["Subtitles"][0]["Code"] == Code:
+                if jsonrsps["Subtitles"][0]["Code"] == lang_code:
                     slink = jsonrsps["Subtitles"][0]["Url"]
-                elif jsonrsps["Subtitles"][1]["Code"] == Code:
+                elif jsonrsps["Subtitles"][1]["Code"] == lang_code:
                     slink = jsonrsps["Subtitles"][1]["Url"]
                 req = urllib2.Request(slink, None, loggedin_headers)
                 response = urllib2.urlopen(req)
@@ -691,7 +687,7 @@ def PLAY(url):
         '<Purchase xmlns="go:v5:interop"><AllowHighResolution>true</AllowHighResolution><ContentId>'
         + cid
         + "</ContentId><CustomerId>"
-        + GOcustomerId
+        + go_customer_id
         + "</CustomerId><Individualization>"
         + individualization
         + "</Individualization><OperatorId>"
@@ -705,11 +701,11 @@ def PLAY(url):
         "Accept-Language": "en-US,en;q=0.8",
         "Connection": "keep-alive",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "GO-CustomerId": str(GOcustomerId),
+        "GO-CustomerId": str(go_customer_id),
         "GO-requiredPlatform": "CHBR",
-        "GO-SessionId": str(sessionId),
+        "GO-SessionId": str(session_id),
         "GO-swVersion": "4.7.4",
-        "GO-Token": str(goToken),
+        "GO-Token": str(go_token),
         "Host": "huapi.hbogo.eu",
         "Referer": "https://hbogo.hu/",
         "Origin": "https://www.hbogo.hu",
@@ -731,21 +727,21 @@ def PLAY(url):
     except:
         pass
 
-    MediaUrl = jsonrspp["Purchase"]["MediaUrl"] + "/Manifest"
-    PlayerSessionId = jsonrspp["Purchase"]["PlayerSessionId"]
+    media_url = jsonrspp["Purchase"]["MediaUrl"] + "/Manifest"
+    player_session_id = jsonrspp["Purchase"]["PlayerSessionId"]
     x_dt_auth_token = jsonrspp["Purchase"]["AuthToken"]
 
     dt_custom_data = base64.b64encode(
         json.dumps(
             {
-                "userId": GOcustomerId,
-                "sessionId": PlayerSessionId,
+                "userId": go_customer_id,
+                "sessionId": player_session_id,
                 "merchant": "hboeurope",
             }
         )
     )
 
-    li = xbmcgui.ListItem(iconImage=thumbnail, thumbnailImage=thumbnail, path=MediaUrl)
+    li = xbmcgui.ListItem(iconImage=thumbnail, thumbnailImage=thumbnail, path=media_url)
     if se == "true" and sub == "true":
         li.setSubtitles([srtsubs_path])
     license_server = "https://lic.drmtoday.com/license-proxy-widevine/cenc/"
@@ -793,7 +789,7 @@ def search_add_movie(item):
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
 
-    addLink(
+    add_link(
         object_url,
         plot,
         age_rating,
@@ -830,7 +826,7 @@ def search_add_series_episode(item):
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
 
-    addLink(
+    add_link(
         object_url,
         plot,
         age_rating,
@@ -853,17 +849,17 @@ def search_add_series(item):
     object_url = item["ObjectUrl"]
     plot = item["Abstract"].encode("utf-8", "ignore")
     background_url = item["BackgroundUrl"]
-    addDir(name, object_url, plot, 2, background_url)
+    add_directory(name, object_url, plot, 2, background_url)
 
 
-def SEARCH():
+def search():
     keyb = xbmc.Keyboard(search_string, "Filmek, sorozatok keresése...")
     keyb.doModal()
     searchText = ""
     if keyb.isConfirmed():
         searchText = urllib.quote_plus(keyb.getText())
         if searchText == "":
-            addDir("Nincs találat", "", "", "", md + "DefaultFolderBack.png")
+            add_directory("Nincs találat", "", "", "", media_path + "DefaultFolderBack.png")
         else:
             __addon__.setSetting("lastsearch", searchText)
 
@@ -892,20 +888,20 @@ def SEARCH():
                     item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE
                     or item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE_ALT
                 ):  # 1,7 = MOVIE/EXTRAS, 2 = SERIES(serial), 3 = SERIES(episode)
-                    # Ако е филм    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+                    # Ако е филм    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
                     search_add_movie(item)
                 elif item["ContentType"] == SEARCH_CONTENT_TYPE_SERIES_EPISODE:
-                    # Ако е Epizód на сериал    # addLink(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+                    # Ако е Epizód на сериал    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
                     search_add_series_episode(item)
                 else:
                     search_add_series(item)
                     # Ако е сериал
                 br = br + 1
             if br == 0:
-                addDir("Nincs találat", "", "", "", md + "DefaultFolderBack.png")
+                add_directory("Nincs találat", "", "", "", media_path + "DefaultFolderBack.png")
 
 
-def addLink(
+def add_link(
     ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode
 ):
     cid = ou.rsplit("/", 2)[1]
@@ -946,7 +942,7 @@ def addLink(
     return ok
 
 
-def addDir(name, url, plot, mode, iconimage):
+def add_directory(name, url, plot, mode, iconimage):
     u = (
         sys.argv[0]
         + "?"
@@ -989,7 +985,7 @@ def get_params():
     return param
 
 
-MODE_LIST = 1
+MODE_LISTING = 1
 MODE_SEASON = 2
 MODE_EPISODE = 3
 MODE_SEARCH = 4
@@ -1034,28 +1030,28 @@ def main():
         pass
 
     if mode == None or url == None or len(url) < 1:
-        CATEGORIES()
+        categories()
 
-    elif mode == MODE_LIST:
-        LIST(url)
+    elif mode == MODE_LISTING:
+        listing(url)
 
     elif mode == MODE_SEASON:
-        SEASON(url)
+        season(url)
 
     elif mode == MODE_EPISODE:
-        EPISODE(url)
+        episode(url)
 
     elif mode == MODE_SEARCH:
-        SEARCH()
+        search()
 
     elif mode == MODE_PLAY:
-        PLAY(url)
+        play(url)
 
     elif mode == MODE_SILENT_REGISTER:
-        SILENTREGISTER()
+        silent_register()
 
     elif mode == MODE_LOGIN:
-        LOGIN()
+        login()
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
