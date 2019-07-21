@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from base64 import b64encode
+from copy import copy
 import json
 import re
 import sys
 from urlparse import parse_qsl
 import urllib
-import urllib2
 from uuid import uuid4
 
 import inputstreamhelper
@@ -44,7 +44,6 @@ elif language == "2":
 
 
 media_path = xbmc.translatePath(__addon__.getAddonInfo("path") + "/resources/media/")
-search_string = urllib.unquote_plus(__addon__.getSetting("lastsearch"))
 
 operator = __addon__.getSetting("operator")
 
@@ -133,13 +132,10 @@ def get_favorite_group():
     # lejatszasi lista id lekerdezes
     global favorites_group_id
 
-    req = urllib2.Request(
-        "https://huapi.hbogo.eu/v7/Settings/json/HUN/COMP", None, loggedin_headers
+    response = requests.get(
+        "https://huapi.hbogo.eu/v7/Settings/json/HUN/COMP", headers=loggedin_headers
     )
-
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrsp = json.loads(f.read())
+    jsonrsp = response.json()
 
     favorites_group_id = jsonrsp["FavoritesGroupId"]
     store_favgroup(favorites_group_id)
@@ -259,9 +255,9 @@ def login():
     }
 
     data = json.dumps(data_obj)
-    r = requests.post(url, headers=headers, data=data)
+    response = requests.post(url, headers=headers, data=data)
 
-    jsonrspl = json.loads(r.text)
+    jsonrspl = response.json()
 
     if jsonrspl.get("ErrorMessage"):
         xbmcgui.Dialog().ok("Login Hiba!", jsonrspl["ErrorMessage"])
@@ -302,12 +298,10 @@ def categories():
             media_path + "FavoritesFolder.png",
         )
 
-    req = urllib2.Request(
-        "https://huapi.hbogo.eu/v5/Groups/json/HUN/COMP", None, loggedin_headers
+    response = requests.get(
+        "https://huapi.hbogo.eu/v5/Groups/json/HUN/COMP", headers=loggedin_headers
     )
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrsp = json.loads(f.read())
+    jsonrsp = response.json()
 
     if jsonrsp.get("ErrorMessage"):
         xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
@@ -439,17 +433,12 @@ def listing(url):
     if session_id == NON_AUTHENTICATED_OP_ID:
         login()
 
-    req = urllib2.Request(url, None, loggedin_headers)
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrsp = json.loads(f.read())
+    response = requests.get(url, headers=loggedin_headers)
+    jsonrsp = response.json()
 
     if jsonrsp.get("ErrorMessage"):
         xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
     # If there is a subcategory / genres
-    if not jsonrsp.get("Container"):
-        xbmcgui.Dialog().ok("Nincs találat")
-        exit()
     if len(jsonrsp["Container"]) > 1:
         for container in jsonrsp["Container"]:
             list_add_subcategory(container)
@@ -485,10 +474,8 @@ def season_add_season(item):
 
 # evadok
 def season(url):
-    req = urllib2.Request(url, None, loggedin_headers)
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrsp = json.loads(f.read())
+    response = requests.get(url, headers=loggedin_headers)
+    jsonrsp = response.json()
 
     if jsonrsp.get("ErrorMessage"):
         xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
@@ -545,10 +532,8 @@ def episode_add_episode(item):
 
 def episode(url):
     # epizodok
-    req = urllib2.Request(url, None, loggedin_headers)
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrsp = json.loads(f.read())
+    response = requests.get(url, headers=loggedin_headers)
+    jsonrsp = response.json()
 
     if jsonrsp.get("ErrorMessage"):
         xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
@@ -575,25 +560,20 @@ def play(url):
             # http://huapi.hbogo.eu/player50.svc/Content/json/HUN/COMP/
             # http://huapi.hbogo.eu/player50.svc/Content/json/HUN/APPLE/
             # http://huapi.hbogo.eu/player50.svc/Content/json/HUN/SONY/
-            req = urllib2.Request(
+            play_headers = copy(loggedin_headers)
+            play_headers["User-Agent"] = MUA
+            response = requests.get(
                 "http://huapi.hbogo.eu/v5/Content/json/HUN/MOBI/" + cid,
-                None,
-                loggedin_headers,
+                headers=play_headers,
             )
-            req.add_header("User-Agent", MUA)
-            opener = urllib2.build_opener()
-            f = opener.open(req)
-            jsonrsps = json.loads(f.read())
+            jsonrsps = response.json()
 
             try:
                 if jsonrsps["Subtitles"][0]["Code"] == lang_code:
                     slink = jsonrsps["Subtitles"][0]["Url"]
                 elif jsonrsps["Subtitles"][1]["Code"] == lang_code:
                     slink = jsonrsps["Subtitles"][1]["Url"]
-                req = urllib2.Request(slink, None, loggedin_headers)
-                response = urllib2.urlopen(req)
-                data = response.read()
-                response.close()
+                data = requests.get(slink, headers=loggedin_headers).text
 
                 subs = re.compile(
                     r'<p[^>]+begin="([^"]+)\D(\d+)"[^>]+end="([^"]+)\D(\d+)"[^>]*>([\w\W]+?)</p>'
@@ -661,14 +641,12 @@ def play(url):
         "User-Agent": UA,
     }
 
-    req = urllib2.Request(
+    response = requests.post(
         "https://huapi.hbogo.eu/v5/Purchase/Json/HUN/COMP",
-        purchase_payload,
-        purchase_headers,
+        data=purchase_payload,
+        headers=purchase_headers,
     )
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    jsonrspp = json.loads(f.read())
+    jsonrspp = response.json()
 
     if jsonrspp.get("ErrorMessage"):
         xbmcgui.Dialog().ok("Hiba", jsonrspp["ErrorMessage"])
@@ -804,28 +782,23 @@ def search_add_series(item):
 
 
 def search():
+    search_string = urllib.unquote_plus(__addon__.getSetting("lastsearch"))
     keyb = xbmc.Keyboard(search_string, "Filmek, sorozatok keresése...")
     keyb.doModal()
     if not keyb.isConfirmed():
         exit()
     search_text = urllib.quote_plus(keyb.getText())
     if not search_text:
-        add_directory(
-            "Nincs találat", "", "", "", media_path + "DefaultFolderBack.png"
-        )
+        add_directory("Nincs találat", "", "", "", media_path + "DefaultFolderBack.png")
     else:
         __addon__.setSetting("lastsearch", search_text)
 
-        req = urllib2.Request(
-            "https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/"
-            + search_text.decode("utf-8", "ignore").encode("utf-8", "ignore")
-            + "/0",
-            None,
-            loggedin_headers,
+        response = requests.get(
+            "https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/%s/0"
+            % (search_text.encode("utf-8")),
+            headers=loggedin_headers,
         )
-        opener = urllib2.build_opener()
-        f = opener.open(req)
-        jsonrsp = json.loads(f.read())
+        jsonrsp = response.json()
 
         if jsonrsp.get("ErrorMessage"):
             xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
