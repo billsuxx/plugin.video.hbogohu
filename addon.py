@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import base64
+from base64 import b64encode
 import json
-import os
-import random
 import re
 import sys
-import time
+from urlparse import parse_qsl
 import urllib
 import urllib2
 
@@ -102,34 +100,35 @@ loggedin_headers = {
     "Accept-Encoding": "",
 }
 
-# individualization es customerId eltarolasa
+
 def store_individualization(indiv, custid):
+    # individualization es customerId eltarolasa
     global individualization
     global customer_id
 
     individualization = __addon__.getSetting("individualization")
-    if individualization == "":
+    if not individualization:
         __addon__.setSetting("individualization", indiv)
         individualization = indiv
 
     customer_id = __addon__.getSetting("customerId")
-    if customer_id == "":
-        __addon__.setSetting("customer_id", custid)
+    if not customer_id:
+        __addon__.setSetting("customerId", custid)
         customer_id = custid
 
 
-# favorites_group_id eltarolasa
 def store_favgroup(favgroupid):
+    # FavoritesGroupId eltarolasa
     global favorites_group_id
 
     favorites_group_id = __addon__.getSetting("FavoritesGroupId")
-    if favorites_group_id == "":
+    if not favorites_group_id:
         __addon__.setSetting("FavoritesGroupId", favgroupid)
         favorites_group_id = favgroupid
 
 
-# eszkoz regisztracioja
 def silent_register():
+    # eszkoz regisztracioja
     global go_token
     global individualization
     global customer_id
@@ -156,8 +155,8 @@ def silent_register():
     return jsonrsp
 
 
-# lejatszasi lista id lekerdezes
 def get_favorite_group():
+    # lejatszasi lista id lekerdezes
     global favorites_group_id
 
     req = urllib2.Request(
@@ -168,12 +167,12 @@ def get_favorite_group():
     f = opener.open(req)
     jsonrsp = json.loads(f.read())
 
-    favgroupId = jsonrsp["FavoritesGroupId"]
-    store_favgroup(favgroupId)
+    favorites_group_id = jsonrsp["FavoritesGroupId"]
+    store_favgroup(favorites_group_id)
 
 
-# belepes
 def login():
+    # belepes
     global session_id
     global go_token
     global customer_id
@@ -189,13 +188,13 @@ def login():
     individualization = __addon__.getSetting("individualization")
     favorites_group_id = __addon__.getSetting("FavoritesGroupId")
 
-    if individualization == "" or customer_id == "":
+    if not all((individualization, customer_id)):
         silent_register()
 
-    if favorites_group_id == "":
+    if not favorites_group_id:
         get_favorite_group()
 
-    if username == "" or password == "":
+    if not all((username, password)):
         xbmcgui.Dialog().ok(
             "Hiba", "Kérlek add meg a beállításoknál a belépési adatokat!"
         )
@@ -290,11 +289,8 @@ def login():
 
     jsonrspl = json.loads(r.text)
 
-    try:
-        if jsonrspl["ErrorMessage"]:
-            xbmcgui.Dialog().ok("Login Hiba!", jsonrspl["ErrorMessage"])
-    except:
-        pass
+    if jsonrspl.get("ErrorMessage"):
+        xbmcgui.Dialog().ok("Login Hiba!", jsonrspl["ErrorMessage"])
 
     customer_id = jsonrspl["Customer"]["CurrentDevice"]["Id"]
     individualization = jsonrspl["Customer"]["CurrentDevice"]["Individualization"]
@@ -313,21 +309,20 @@ def login():
         loggedin_headers["GO-CustomerId"] = str(go_customer_id)
 
 
-# kategoria
 def categories():
+    # kategoria
     global favorites_group_id
 
     add_directory("Keresés...", "search", "", 4, "")
 
-    if favorites_group_id == "":
+    if not favorites_group_id:
         get_favorite_group()
 
-    if favorites_group_id != "":
+    if favorites_group_id:
         add_directory(
             "Lejátszási listád",
-            "https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/"
-            + favorites_group_id
-            + "/-/-/-/1000/-/-/false",
+            "https://huapi.hbogo.eu/v7/CustomerGroup/json/HUN/COMP/%s/-/-/-/1000/-/-/false"
+            % (favorites_group_id),
             "",
             1,
             media_path + "FavoritesFolder.png",
@@ -340,16 +335,16 @@ def categories():
     f = opener.open(req)
     jsonrsp = json.loads(f.read())
 
-    try:
-        if jsonrsp["ErrorMessage"]:
-            xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
-    except:
-        pass
+    if jsonrsp.get("ErrorMessage"):
+        xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
 
-    for cat in range(0, len(jsonrsp["Items"])):
+    for item in jsonrsp.get("Items"):
+        if not item.get("ObjectUrl"):
+            # if the item has no URL we shouldn't display it
+            continue
         add_directory(
-            jsonrsp["Items"][cat]["Name"].encode("utf-8", "ignore"),
-            jsonrsp["Items"][cat]["ObjectUrl"].replace(
+            item.get("Name", "Ismeretlen kategória").encode("utf-8", "ignore"),
+            item.get("ObjectUrl").replace(
                 "/0/{sort}/{pageIndex}/{pageSize}/0/0", "/0/0/1/1024/0/0"
             ),
             "",
@@ -359,23 +354,19 @@ def categories():
 
 
 def list_add_movie_link(item):
-    # if it's a movie    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+    # if it's a movie: # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
     plot = item["Abstract"].encode("utf-8", "ignore")
 
-    if "AvailabilityTo" in item:
-        if item["AvailabilityTo"] is not None:
-
-            plot = (
-                plot
-                + " A film megtekinthető: "
-                + item["AvailabilityTo"].encode("utf-8", "ignore")
-            )
+    if item.get("AvailabilityTo"):
+        plot += " A film megtekinthető: %s" % (
+            item["AvailabilityTo"].encode("utf-8", "ignore")
+        )
 
     object_url = item["ObjectUrl"]
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = [item["Cast"].split(", ")][0]
+    cast = item["Cast"].split(", ", 1)[0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -404,31 +395,26 @@ def list_add_movie_link(item):
 
 
 def list_add_series_episode(item):
-    # If it's a series episode    # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
+    # If it's a series episode: # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
     plot = item["Abstract"].encode("utf-8", "ignore")
-    if item["AvailabilityTo"] is not None:
-        plot = (
-            plot
-            + " Az epizód megtekinthető: "
-            + item["AvailabilityTo"].encode("utf-8", "ignore")
+    if item.get("AvailabilityTo"):
+        plot += " Az epizód megtekinthető: %s" % (
+            item["AvailabilityTo"].encode("utf-8", "ignore")
         )
 
     object_url = item["ObjectUrl"]
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = [item["Cast"].split(", ")][0]
+    cast = item["Cast"].split(", ", 1)[0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
     genre = item["Genre"]
-    name = (
-        item["SeriesName"].encode("utf-8", "ignore")
-        + " - "
-        + str(item["SeasonIndex"])
-        + ". ÉVAD "
-        + str(item["Index"])
-        + ". RÉSZ"
+    name = "%s - %s. ÉVAD %s. RÉSZ" % (
+        item.get("SeriesName", "Ismeretlen cím").encode("utf-8"),
+        item.get("SeasonIndex"),
+        item.get("Index"),
     )
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
@@ -471,8 +457,8 @@ def list_add_subcategory(item):
     )
 
 
-# lista
 def listing(url):
+    # lista
     global session_id
     global loggedin_headers
 
@@ -484,21 +470,19 @@ def listing(url):
     f = opener.open(req)
     jsonrsp = json.loads(f.read())
 
-    try:
-        if jsonrsp["ErrorMessage"]:
-            xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
-    except:
-        pass
+    if jsonrsp.get("ErrorMessage"):
+        xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
     # If there is a subcategory / genres
+    if not jsonrsp.get("Container"):
+        xbmcgui.Dialog().ok("Nincs találat")
+        exit()
     if len(jsonrsp["Container"]) > 1:
-        for Container in range(0, len(jsonrsp["Container"])):
-            item = jsonrsp["Container"][Container]
-            list_add_subcategory(item)
+        for container in jsonrsp["Container"]:
+            list_add_subcategory(container)
     else:
-        items = jsonrsp["Container"][0]["Contents"]["Items"]
+        items = jsonrsp["Container"][0].get("Contents", {}).get("Items")
 
-        for titles in range(0, len(items)):
-            item = items[titles]
+        for item in items:
             content_type = item["ContentType"]
 
             if (
@@ -514,6 +498,8 @@ def listing(url):
 
 
 def season_add_season(item):
+    if not item.get("ObjectUrl"):
+        return
     add_directory(
         item["Name"].encode("utf-8", "ignore"),
         item["ObjectUrl"],
@@ -530,44 +516,37 @@ def season(url):
     f = opener.open(req)
     jsonrsp = json.loads(f.read())
 
-    try:
-        if jsonrsp["ErrorMessage"]:
-            xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
-    except:
-        pass
+    if jsonrsp.get("ErrorMessage"):
+        xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
 
-    items = jsonrsp["Parent"]["ChildContents"]["Items"]
-    for season in range(0, len(items)):
-        item = items[season]
+    items = jsonrsp.get("Parent", {}).get("ChildContents", {}).get("Items")
+    for item in items:
         season_add_season(item)
 
 
 def episode_add_episode(item):
+    if not item.get("ObjectUrl"):
+        return
     # add_link(ou, plot, ar, imdb, bu, cast, director, writer, duration, genre, name, on, py, mode)
     plot = item["Abstract"].encode("utf-8", "ignore")
-    if "AvailabilityTo" in item:
-        if item["AvailabilityTo"] is not None:
-            plot = (
-                plot
-                + " Az epizód megtekinthető: "
-                + item["AvailabilityTo"].encode("utf-8", "ignore")
-            )
+    if item.get("AvailabilityTo"):
+        plot += " Az epizód megtekinthető: %s" % (
+            item["AvailabilityTo"].encode("utf-8", "ignore")
+        )
 
     object_url = item["ObjectUrl"]
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = [item["Cast"].split(", ")][0]
+    cast = item["Cast"].split(", ", 1)[0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
     genre = item["Genre"]
-    name = (
-        item["SeriesName"].encode("utf-8", "ignore")
-        + " - "
-        + str(item["SeasonIndex"])
-        + ". ÉVAD "
-        + item["Name"].encode("utf-8", "ignore")
+    name = "%s - %s. ÉVAD %s. RÉSZ" % (
+        item.get("SeriesName", "Ismeretlen cím").encode("utf-8"),
+        item.get("SeasonIndex"),
+        item.get("Index"),
     )
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
@@ -590,27 +569,23 @@ def episode_add_episode(item):
     )
 
 
-# epizodok
 def episode(url):
+    # epizodok
     req = urllib2.Request(url, None, loggedin_headers)
     opener = urllib2.build_opener()
     f = opener.open(req)
     jsonrsp = json.loads(f.read())
 
-    try:
-        if jsonrsp["ErrorMessage"]:
-            xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
-    except:
-        pass
+    if jsonrsp.get("ErrorMessage"):
+        xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
 
-    items = jsonrsp["ChildContents"]["Items"]
-    for episode in range(0, len(items)):
-        item = items[episode]
+    items = jsonrsp.get("ChildContents", {}).get("Items")
+    for item in items:
         episode_add_episode(item)
 
 
-# lejatszas
 def play(url):
+    # lejatszas
     global go_token
     global individualization
     global customer_id
@@ -721,17 +696,14 @@ def play(url):
     f = opener.open(req)
     jsonrspp = json.loads(f.read())
 
-    try:
-        if jsonrspp["ErrorMessage"]:
-            xbmcgui.Dialog().ok("Hiba", jsonrspp["ErrorMessage"])
-    except:
-        pass
+    if jsonrspp.get("ErrorMessage"):
+        xbmcgui.Dialog().ok("Hiba", jsonrspp["ErrorMessage"])
 
     media_url = jsonrspp["Purchase"]["MediaUrl"] + "/Manifest"
     player_session_id = jsonrspp["Purchase"]["PlayerSessionId"]
     x_dt_auth_token = jsonrspp["Purchase"]["AuthToken"]
 
-    dt_custom_data = base64.b64encode(
+    dt_custom_data = b64encode(
         json.dumps(
             {
                 "userId": go_customer_id,
@@ -775,12 +747,14 @@ SEARCH_CONTENT_TYPE_SERIES_EPISODE = 3
 
 
 def search_add_movie(item):
+    if not item.get("ObjectUrl"):
+        return
     object_url = item["ObjectUrl"]
     plot = item["Abstract"].encode("utf-8", "ignore")
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = [item["Cast"].split(", ")][0]
+    cast = item["Cast"].split(", ", 1)[0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
@@ -808,20 +782,21 @@ def search_add_movie(item):
 
 
 def search_add_series_episode(item):
+    if not item.get("ObjectUrl"):
+        return
     object_url = item["ObjectUrl"]
     plot = item["Abstract"].encode("utf-8", "ignore")
     age_rating = item["AgeRating"]
     imdb = item["ImdbRate"]
     background_url = item["BackgroundUrl"]
-    cast = [item["Cast"].split(", ")][0]
+    cast = item["Cast"].split(", ", 1)[0]
     director = item["Director"]
     writer = item["Writer"]
     duration = item["Duration"]
     genre = item["Genre"]
-    name = (
-        item["SeriesName"].encode("utf-8", "ignore")
-        + " "
-        + item["Name"].encode("utf-8", "ignore")
+    name = "%s %s" % (
+        item.get("SeriesName").encode("utf-8"),
+        item.get("Name").encode("utf-8"),
     )
     original_name = item["OriginalName"]
     production_year = item["ProductionYear"]
@@ -845,6 +820,8 @@ def search_add_series_episode(item):
 
 
 def search_add_series(item):
+    if not item.get("ObjectUrl"):
+        return
     name = item["Name"].encode("utf-8", "ignore")
     object_url = item["ObjectUrl"]
     plot = item["Abstract"].encode("utf-8", "ignore")
@@ -855,17 +832,18 @@ def search_add_series(item):
 def search():
     keyb = xbmc.Keyboard(search_string, "Filmek, sorozatok keresése...")
     keyb.doModal()
-    searchText = ""
     if keyb.isConfirmed():
-        searchText = urllib.quote_plus(keyb.getText())
-        if searchText == "":
-            add_directory("Nincs találat", "", "", "", media_path + "DefaultFolderBack.png")
+        search_text = urllib.quote_plus(keyb.getText())
+        if not search_text:
+            add_directory(
+                "Nincs találat", "", "", "", media_path + "DefaultFolderBack.png"
+            )
         else:
-            __addon__.setSetting("lastsearch", searchText)
+            __addon__.setSetting("lastsearch", search_text)
 
             req = urllib2.Request(
                 "https://huapi.hbogo.eu/v5/Search/Json/HUN/COMP/"
-                + searchText.decode("utf-8", "ignore").encode("utf-8", "ignore")
+                + search_text.decode("utf-8", "ignore").encode("utf-8", "ignore")
                 + "/0",
                 None,
                 loggedin_headers,
@@ -874,16 +852,12 @@ def search():
             f = opener.open(req)
             jsonrsp = json.loads(f.read())
 
-            try:
-                if jsonrsp["ErrorMessage"]:
-                    xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
-            except:
-                pass
+            if jsonrsp.get("ErrorMessage"):
+                xbmcgui.Dialog().ok("Hiba", jsonrsp["ErrorMessage"])
 
             br = 0
             items = jsonrsp["Container"][0]["Contents"]["Items"]
-            for index in range(0, len(items)):
-                item = items[index]
+            for item in items:
                 if (
                     item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE
                     or item["ContentType"] == SEARCH_CONTENT_TYPE_MOVIE_ALT
@@ -898,7 +872,9 @@ def search():
                     # Ако е сериал
                 br = br + 1
             if br == 0:
-                add_directory("Nincs találat", "", "", "", media_path + "DefaultFolderBack.png")
+                add_directory(
+                    "Nincs találat", "", "", "", media_path + "DefaultFolderBack.png"
+                )
 
 
 def add_link(
@@ -961,30 +937,6 @@ def add_directory(name, url, plot, mode, iconimage):
     return ok
 
 
-def get_params():
-    param = []
-    paramstring = sys.argv[2]
-
-    if len(paramstring) >= 2:
-        params = sys.argv[2]
-        cleanedparams = params.replace("?", "")
-
-        if params[len(params) - 1] == "/":
-            params = params[0 : len(params) - 2]
-
-        pairsofparams = cleanedparams.split("&")
-        param = {}
-
-        for i in range(len(pairsofparams)):
-            splitparams = {}
-            splitparams = pairsofparams[i].split("=")
-
-            if (len(splitparams)) == 2:
-                param[splitparams[0]] = splitparams[1]
-
-    return param
-
-
 MODE_LISTING = 1
 MODE_SEASON = 2
 MODE_EPISODE = 3
@@ -994,42 +946,16 @@ MODE_SILENT_REGISTER = 6
 MODE_LOGIN = 7
 
 
-def main():
-    global params
-    global url
-    global name
-    global thumbnail
-    global mode
-    global cid
+if __name__ == "__main__":
+    params = dict(parse_qsl(sys.argv[2].replace("?", "")))
 
-    params = get_params()
+    url = params.get("url")
+    name = params.get("name")
+    thumbnail = params.get("thumbnail")
+    mode = int(params.get("mode"))
+    cid = params.get("cid")
 
-    try:
-        url = urllib.unquote_plus(params["url"])
-    except:
-        pass
-
-    try:
-        name = urllib.unquote_plus(params["name"])
-    except:
-        pass
-
-    try:
-        thumbnail = str(params["thumbnail"])
-    except:
-        pass
-
-    try:
-        mode = int(params["mode"])
-    except:
-        pass
-
-    try:
-        cid = str(params["cid"])
-    except:
-        pass
-
-    if mode == None or url == None or len(url) < 1:
+    if not any((mode, url)):
         categories()
 
     elif mode == MODE_LISTING:
@@ -1054,9 +980,5 @@ def main():
         login()
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
-
-if __name__ == "__main__":
-    main()
 
 # vim: sw=2:ts=2:noexpandtab
