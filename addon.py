@@ -107,7 +107,6 @@ def store_individualization():
     global customer_id
 
     individualization = __addon__.getSetting("individualization")
-    sys.stderr.write(individualization)
     if not individualization:
         individualization = str(uuid4())
         __addon__.setSetting("individualization", individualization)
